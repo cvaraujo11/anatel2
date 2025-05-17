@@ -1,0 +1,1745 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+technical/
+  03-pages/
+    alimentacao.md
+    autoconhecimento.md
+    concursos-id.md
+    concursos.md
+    estudos-materiais.md
+    estudos-simulado-personalizado.md
+    estudos-simulado.md
+    estudos.md
+    financas.md
+    hiperfocos.md
+    inicio.md
+    lazer.md
+    perfil-ajuda.md
+    perfil.md
+    README.md
+    receitas-adicionar.md
+    receitas-editar-id.md
+    receitas-id.md
+    receitas-lista-compras.md
+    receitas.md
+    roadmap.md
+    saude.md
+    sono.md
+  01-project-overview.md
+  02-routing.md
+  04-ui-components.md
+  05-state-management.md
+  06-libraries-services.md
+  README.md
+exemplo-receita-unica.json
+exemplo-receitas-multiplas.json
+guia-receitas.md
+receita-plan.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="technical/03-pages/alimentacao.md">
+# Documentação da Página: Alimentação ([`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1))
+
+## Propósito Geral da Página
+
+A página de Alimentação ([`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1)) centraliza as funcionalidades relacionadas ao gerenciamento da dieta e hidratação do usuário. Ela permite o planejamento de refeições, o registro do que foi consumido e o acompanhamento da ingestão de água.
+
+## Principais Funcionalidades
+
+*   **Planejamento de Refeições:** Os usuários podem definir horários e descrições para suas refeições diárias (ex: café da manhã, almoço, jantar).
+*   **Registro de Refeições Consumidas:** Permite que o usuário registre as refeições que efetivamente consumiu, incluindo horário, descrição, um ícone representativo do tipo de alimento e, opcionalmente, uma foto da refeição.
+*   **Acompanhamento de Hidratação:** Os usuários podem registrar a quantidade de copos de água bebidos, ajustar uma meta diária de consumo e visualizar seu progresso.
+*   **Acesso à Seção de Receitas:** Fornece um atalho para a seção "Minhas Receitas", onde o usuário pode organizar suas receitas favoritas.
+
+## Componentes Visuais Chave e Sua Função
+
+A página é estruturada utilizando o componente [`Card`](app/components/ui/Card.tsx:1) para agrupar funcionalidades relacionadas:
+
+1.  **`PlanejadorRefeicoes` ([`app/components/alimentacao/PlanejadorRefeicoes.tsx`](app/components/alimentacao/PlanejadorRefeicoes.tsx:13))**
+    *   **Localização:** Dentro de um [`Card`](app/components/ui/Card.tsx:1) com o título "Planejador de Refeições".
+    *   **Função:** Exibe uma lista de refeições planejadas (horário e descrição). Permite ao usuário adicionar novas refeições, editar refeições existentes (alterando horário e/ou descrição) e remover refeições do planejamento.
+
+2.  **`RegistroRefeicoes` ([`app/components/alimentacao/RegistroRefeicoes.tsx`](app/components/alimentacao/RegistroRefeicoes.tsx:18))**
+    *   **Localização:** Dentro de um [`Card`](app/components/ui/Card.tsx:1) com o título "Registro de Refeições".
+    *   **Função:** Mostra os registros de refeições já feitos pelo usuário. Permite adicionar um novo registro, especificando horário, descrição, um ícone visual para o tipo de refeição (ex: ☕ para café, 🍎 para fruta) e a opção de anexar uma foto (simulada). Os registros existentes podem ser removidos.
+
+3.  **`LembreteHidratacao` ([`app/components/alimentacao/LembreteHidratacao.tsx`](app/components/alimentacao/LembreteHidratacao.tsx:6))**
+    *   **Localização:** Dentro de um [`Card`](app/components/ui/Card.tsx:1) com o título "Hidratação".
+    *   **Função:** Apresenta o acompanhamento do consumo de água. Exibe a quantidade de copos bebidos em relação a uma meta diária ajustável. O usuário pode registrar ou remover copos de água bebidos. Mostra o progresso visualmente através de uma barra e ícones de gotas. Também exibe o horário do último copo registrado e dicas de hidratação.
+
+4.  **Card "Minhas Receitas"**
+    *   **Localização:** É um [`Card`](app/components/ui/Card.tsx:1) com o título "Minhas Receitas".
+    *   **Função:** Contém um texto introdutório que incentiva o usuário a organizar e acessar suas receitas. Possui um botão ([`Button`](app/components/ui/Button.tsx:1) estilizado dentro de um componente [`Link`](app/alimentacao/page.tsx:7) do Next.js) "Acessar Minhas Receitas" que redireciona o usuário para a página [`/receitas`](app/receitas/page.tsx:1).
+
+## Conteúdo Textual Estático Proeminente
+
+*   **Título Principal da Página:** "Alimentação" (tag `<h1>`).
+*   **Títulos dos Cards:**
+    *   "Planejador de Refeições"
+    *   "Registro de Refeições"
+    *   "Hidratação"
+    *   "Minhas Receitas"
+*   **Texto Introdutório no Card "Minhas Receitas":** "Organize e acesse suas receitas favoritas aqui. Crie listas de compras e planeje suas refeições."
+
+## Interações com Stores de Estado (Zustand)
+
+A página [`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1), através de seus componentes filhos, interage intensamente com a store [`useAlimentacaoStore`](app/stores/alimentacaoStore.ts:41) (localizada em [`app/stores/alimentacaoStore.ts`](app/stores/alimentacaoStore.ts:1)).
+
+*   **Store Utilizada:** [`useAlimentacaoStore`](app/stores/alimentacaoStore.ts:41)
+*   **Propósito da Interação:**
+    *   O componente [`PlanejadorRefeicoes`](app/components/alimentacao/PlanejadorRefeicoes.tsx:13) utiliza a store para:
+        *   Ler a lista de `refeicoes` planejadas.
+        *   Chamar `adicionarRefeicao` para criar novas refeições.
+        *   Chamar `atualizarRefeicao` para modificar refeições existentes.
+        *   Chamar `removerRefeicao` para excluir refeições.
+    *   O componente [`RegistroRefeicoes`](app/components/alimentacao/RegistroRefeicoes.tsx:18) utiliza a store para:
+        *   Ler a lista de `registros` de refeições consumidas.
+        *   Chamar `adicionarRegistro` para salvar um novo registro de refeição.
+        *   Chamar `removerRegistro` para excluir um registro.
+    *   O componente [`LembreteHidratacao`](app/components/alimentacao/LembreteHidratacao.tsx:6) utiliza a store para:
+        *   Ler o estado de `coposBebidos`, `metaDiaria` e `ultimoRegistro` de hidratação.
+        *   Chamar `adicionarCopo` para incrementar o número de copos bebidos.
+        *   Chamar `removerCopo` para decrementar o número de copos bebidos.
+        *   Chamar `ajustarMeta` para modificar a meta diária de copos de água.
+
+A store [`useAlimentacaoStore`](app/stores/alimentacaoStore.ts:41) também utiliza o middleware `persist` do Zustand para salvar o estado relacionado à alimentação no `localStorage` do navegador sob a chave `alimentacao-storage`, garantindo que os dados do usuário persistam entre as sessões.
+</file>
+
+<file path="technical/03-pages/autoconhecimento.md">
+# Documentação da Página: Autoconhecimento ([`app/autoconhecimento/page.tsx`](app/autoconhecimento/page.tsx:1))
+
+## Propósito Geral da Página
+
+A página de Autoconhecimento serve como um diário digital estruturado, permitindo ao usuário registrar, organizar e refletir sobre diferentes aspectos de sua personalidade, motivações e padrões de comportamento. O objetivo é facilitar o autoconhecimento através da documentação e revisão de notas pessoais em seções temáticas. A página também oferece um "Modo Refúgio" para uma experiência de escrita focada e com menos distrações.
+
+## Principais Funcionalidades
+
+*   **Navegação por Abas Temáticas:** O usuário pode alternar entre três seções principais para organizar suas notas:
+    *   "Quem sou"
+    *   "Meus porquês"
+    *   "Meus padrões"
+*   **Criação e Edição de Notas:** Permite criar novas notas ou editar notas existentes dentro da seção selecionada.
+*   **Listagem de Notas:** Exibe uma lista das notas previamente salvas para a aba ativa, permitindo fácil acesso e seleção.
+*   **Modo Refúgio:** Uma funcionalidade que simplifica a interface, possivelmente ocultando elementos visuais secundários para promover foco durante a escrita ou leitura.
+*   **Gerenciamento de Estado de Edição:** Controla se o usuário está criando uma nova nota, editando uma existente ou visualizando a lista de notas.
+
+## Componentes Visuais Chave e Sua Função
+
+*   **Abas de Navegação (Dinâmicas):**
+    *   Localização: Topo da página, abaixo do título principal ([`app/autoconhecimento/page.tsx:70-89`](app/autoconhecimento/page.tsx:70)).
+    *   Função: Permitem ao usuário selecionar qual categoria de notas de autoconhecimento deseja visualizar ou editar ("Quem sou", "Meus porquês", "Meus padrões").
+*   **[`ListaNotas`](app/components/autoconhecimento/ListaNotas.tsx:6) ([`app/components/autoconhecimento/ListaNotas.tsx`](app/components/autoconhecimento/ListaNotas.tsx:1)):**
+    *   Localização: Na coluna da esquerda (em telas maiores) quando nenhuma nota está selecionada para edição ou criação ([`app/autoconhecimento/page.tsx:124-127`](app/autoconhecimento/page.tsx:124)).
+    *   Função: Exibe os títulos ou resumos das notas existentes para a aba selecionada. Clicar em uma nota da lista a seleciona para visualização/edição no [`EditorNotas`](app/components/autoconhecimento/EditorNotas.tsx:5).
+*   **[`EditorNotas`](app/components/autoconhecimento/EditorNotas.tsx:5) ([`app/components/autoconhecimento/EditorNotas.tsx`](app/components/autoconhecimento/EditorNotas.tsx:1)):**
+    *   Localização: Ocupa a área principal (ou coluna da direita em telas maiores) quando uma nota está sendo criada ou editada ([`app/autoconhecimento/page.tsx:148-152`](app/autoconhecimento/page.tsx:148)).
+    *   Função: Provê uma interface rica (provavelmente um editor de texto) para o usuário escrever e formatar o conteúdo de suas notas. Salva as alterações ou a nova nota.
+*   **[`ModoRefugio`](app/components/autoconhecimento/ModoRefugio.tsx:7) ([`app/components/autoconhecimento/ModoRefugio.tsx`](app/components/autoconhecimento/ModoRefugio.tsx:1)):**
+    *   Localização: Renderizado no final do container da página, possivelmente como um botão flutuante ou um toggle ([`app/autoconhecimento/page.tsx:159`](app/autoconhecimento/page.tsx:159)).
+    *   Função: Ativa ou desativa o "Modo Refúgio". Quando ativo, a interface é simplificada (e.g., descrições de seção e o botão "Nova nota" podem ser ocultados).
+*   **[`Button`](app/components/ui/Button.tsx:8) ([`app/components/ui/Button.tsx`](app/components/ui/Button.tsx:1)):**
+    *   Função: Utilizado para diversas ações:
+        *   "Nova nota": Inicia o processo de criação de uma nova nota ([`app/autoconhecimento/page.tsx:113-120`](app/autoconhecimento/page.tsx:113)).
+        *   "Cancelar": Descarta a criação ou edição de uma nota, retornando à visualização da lista ([`app/autoconhecimento/page.tsx:138-145`](app/autoconhecimento/page.tsx:138)).
+*   **[`Container`](app/components/ui/Container.tsx:9) ([`app/components/ui/Container.tsx`](app/components/ui/Container.tsx:1)):**
+    *   Função: Componente de layout que envolve todo o conteúdo da página, garantindo consistência visual e espaçamento.
+*   **[`Section`](app/components/ui/Section.tsx:10) ([`app/components/ui/Section.tsx`](app/components/ui/Section.tsx:1)):**
+    *   Função: Agrupa o conteúdo principal relacionado à aba selecionada, contendo a [`ListaNotas`](app/components/autoconhecimento/ListaNotas.tsx:6) e/ou o [`EditorNotas`](app/components/autoconhecimento/EditorNotas.tsx:5) ([`app/autoconhecimento/page.tsx:100-156`](app/autoconhecimento/page.tsx:100)).
+
+## Conteúdo Textual Estático Proeminente
+
+*   **Título Principal da Página:** "Notas de Autoconhecimento" ([`app/autoconhecimento/page.tsx:66`](app/autoconhecimento/page.tsx:66)).
+*   **Títulos das Abas/Seções (visíveis nas abas e como cabeçalhos de seção):**
+    *   "Quem sou" ([`app/autoconhecimento/page.tsx:22`](app/autoconhecimento/page.tsx:22))
+    *   "Meus porquês" ([`app/autoconhecimento/page.tsx:23`](app/autoconhecimento/page.tsx:23))
+    *   "Meus padrões" ([`app/autoconhecimento/page.tsx:24`](app/autoconhecimento/page.tsx:24))
+*   **Descrições das Seções (exibidas abaixo das abas quando nenhuma nota está sendo editada e o Modo Refúgio está desativado):**
+    *   Para "Quem sou": "Registre suas preferências, aversões e características pessoais estáveis" ([`app/autoconhecimento/page.tsx:29`](app/autoconhecimento/page.tsx:29)).
+    *   Para "Meus porquês": "Documente motivações e valores fundamentais que guiam suas decisões" ([`app/autoconhecimento/page.tsx:30`](app/autoconhecimento/page.tsx:30)).
+    *   Para "Meus padrões": "Anote reações emocionais típicas e estratégias eficazes em momentos de crise" ([`app/autoconhecimento/page.tsx:31`](app/autoconhecimento/page.tsx:31)).
+*   **Cabeçalhos Dinâmicos:**
+    *   "Suas notas em [Nome da Aba]" (e.g., "Suas notas em Quem sou") ([`app/autoconhecimento/page.tsx:109`](app/autoconhecimento/page.tsx:109)).
+    *   "Nova nota" ou "Editar nota", dependendo da ação do usuário ([`app/autoconhecimento/page.tsx:135`](app/autoconhecimento/page.tsx:135)).
+
+## Interações com Stores de Estado (Zustand)
+
+*   A página interage com a store `useAutoconhecimentoStore` (importada de [`app/stores/autoconhecimentoStore.ts`](app/stores/autoconhecimentoStore.ts:11)).
+*   **Estado Utilizado:** `modoRefugio` ([`app/autoconhecimento/page.tsx:18`](app/autoconhecimento/page.tsx:18)).
+*   **Propósito da Interação:** O estado `modoRefugio` é lido da store para determinar se a interface da página deve ser simplificada. Se `modoRefugio` for `true`, certos elementos da interface, como as descrições das seções ([`app/autoconhecimento/page.tsx:92`](app/autoconhecimento/page.tsx:92)) e o botão para criar uma nova nota ([`app/autoconhecimento/page.tsx:112`](app/autoconhecimento/page.tsx:112)), são ocultados para minimizar distrações. O componente [`ModoRefugio`](app/components/autoconhecimento/ModoRefugio.tsx:7) é responsável por permitir ao usuário alterar este estado na store.
+</file>
+
+<file path="technical/03-pages/concursos-id.md">
+# Documentação da Página: Detalhes do Concurso ([`app/concursos/[id]/page.tsx`](app/concursos/[id]/page.tsx:1))
+
+Este documento detalha a página que exibe os detalhes de um concurso específico na aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.5: Documentação da página [`app/concursos/[id]/page.tsx`](app/concursos/[id]/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/concursos.md">
+# Documentação da Página: Concursos ([`app/concursos/page.tsx`](app/concursos/page.tsx:1))
+
+Este documento detalha a página de listagem de concursos da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.4: Documentação da página [`app/concursos/page.tsx`](app/concursos/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/estudos-materiais.md">
+# Documentação da Página: Materiais de Estudo ([`app/estudos/materiais/page.tsx`](app/estudos/materiais/page.tsx:1))
+
+Este documento detalha a página de materiais de estudo da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.7: Documentação da página [`app/estudos/materiais/page.tsx`](app/estudos/materiais/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/estudos-simulado-personalizado.md">
+# Documentação da Página: Simulado Personalizado ([`app/estudos/simulado-personalizado/page.tsx`](app/estudos/simulado-personalizado/page.tsx:1))
+
+Este documento detalha a página de criação de simulados personalizados da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.9: Documentação da página [`app/estudos/simulado-personalizado/page.tsx`](app/estudos/simulado-personalizado/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/estudos-simulado.md">
+# Documentação da Página: Simulado ([`app/estudos/simulado/page.tsx`](app/estudos/simulado/page.tsx:1))
+
+Este documento detalha a página de simulados da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.8: Documentação da página [`app/estudos/simulado/page.tsx`](app/estudos/simulado/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/estudos.md">
+qq# Documentação da Página: Estudos ([`app/estudos/page.tsx`](app/estudos/page.tsx:1))
+
+Este documento detalha a página principal de estudos da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.6: Documentação da página [`app/estudos/page.tsx`](app/estudos/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/financas.md">
+# Documentação da Página: Finanças ([`app/financas/page.tsx`](app/financas/page.tsx:1))
+
+Este documento detalha a página de finanças da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.10: Documentação da página [`app/financas/page.tsx`](app/financas/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/hiperfocos.md">
+# Documentação da Página: Hiperfocos ([`app/hiperfocos/page.tsx`](app/hiperfocos/page.tsx:1))
+
+Este documento detalha a página de hiperfocos da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.11: Documentação da página [`app/hiperfocos/page.tsx`](app/hiperfocos/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/inicio.md">
+# Documentação da Página Inicial ([`app/page.tsx`](app/page.tsx:1))
+
+## Propósito Geral da Página
+
+A página inicial ([`app/page.tsx`](app/page.tsx:1)) serve como um painel de controle central para o usuário, fornecendo uma visão geral de suas atividades, prioridades, compromissos e configurações relevantes para o dia. Seu objetivo é oferecer acesso rápido às informações e funcionalidades mais importantes do aplicativo.
+
+## Principais Funcionalidades
+
+*   **Visualização do Painel do Dia:** Exibe os blocos de tempo e atividades planejadas para o dia.
+*   **Gerenciamento de Prioridades:** Mostra a lista de tarefas prioritárias para o dia e permite o acompanhamento do status (pendentes/concluídas).
+*   **Checklist de Medicamentos:** Apresenta um checklist para o usuário marcar os medicamentos que já tomou.
+*   **Lembretes de Pausas:** Caso ativado nas configurações, exibe lembretes para pausas.
+*   **Visualização da Próxima Prova:** Mostra informações sobre a próxima prova agendada.
+*   **Resumo Rápido:** Apresenta um sumário com o número de prioridades pendentes, prioridades concluídas e próximos compromissos.
+*   **Acesso Rápido:** Fornece links diretos para seções importantes do aplicativo como Estudos, Saúde, Hiperfocos e Lazer.
+*   **Preferências de Acessibilidade:** Permite ao usuário ajustar preferências visuais como texto grande, alto contraste e redução de estímulos através do botão de preferências.
+
+## Componentes Visuais Chave e Sua Função
+
+A página utiliza diversos componentes, principalmente das pastas [`app/components/ui/`](app/components/ui/) para elementos de interface genéricos e [`app/components/inicio/`](app/components/inicio/) para componentes específicos da página inicial.
+
+*   **Componentes de UI (de [`app/components/ui/`](app/components/ui/)):**
+    *   [`DashboardCard`](app/components/ui/DashboardCard.tsx:6): Contêiner padrão para seções do dashboard, com título e opção de estado de carregamento. Usado para envolver o `PainelDia`, `ListaPrioridades`, etc.
+    *   [`DashboardSection`](app/components/ui/DashboardSection.tsx:7): Define uma seção dentro do dashboard, agrupando cartões ou outros elementos.
+    *   [`DashboardHeader`](app/components/ui/DashboardHeader.tsx:8): Cabeçalho da página do dashboard, exibindo título, nome do usuário, descrição e ações (como o botão de preferências).
+    *   [`DashboardSummary`](app/components/ui/DashboardSummary.tsx:9): Exibe um resumo de estatísticas chave (prioridades pendentes/concluídas, próximos compromissos).
+    *   [`SuspenseWrapper`](app/components/ui/SuspenseWrapper.tsx:10): Envolve componentes que podem ter carregamento assíncrono, exibindo um placeholder enquanto o conteúdo não está pronto.
+    *   [`PreferencesButton`](app/components/ui/PreferencesButton.tsx:11): Botão que provavelmente abre um modal ou menu para o usuário configurar suas preferências visuais.
+    *   [`Button`](app/components/ui/Button.tsx:12): Componente de botão genérico.
+    *   [`cn`](app/lib/utils.ts:19): Utilitário para concatenar classes CSS condicionalmente (usado com `buttonVariants`).
+
+*   **Componentes da Página Inicial (de [`app/components/inicio/`](app/components/inicio/)):**
+    *   [`PainelDia`](app/components/inicio/PainelDia.tsx:13): Exibe uma visualização dos blocos de tempo e atividades agendadas para o dia corrente.
+    *   [`ListaPrioridades`](app/components/inicio/ListaPrioridades.tsx:14): Mostra a lista de tarefas definidas como prioritárias para o dia.
+    *   [`LembretePausas`](app/components/inicio/LembretePausas.tsx:15): Apresenta um lembrete visual para o usuário fazer pausas, provavelmente baseado nas configurações de metas de pausas.
+    *   [`ChecklistMedicamentos`](app/components/inicio/ChecklistMedicamentos.tsx:16): Permite ao usuário marcar os medicamentos que já foram administrados no dia.
+    *   [`ProximaProvaCard`](app/components/inicio/ProximaProvaCard.tsx:17): Exibe informações sobre a próxima prova ou avaliação importante agendada.
+
+## Conteúdo Textual Estático Proeminente
+
+*   **Título Principal (via [`DashboardHeader`](app/components/ui/DashboardHeader.tsx:89)):** "Início"
+*   **Descrição (via [`DashboardHeader`](app/components/ui/DashboardHeader.tsx:92)):** "Aqui está seu progresso e tarefas para hoje."
+*   **Títulos de Seção (via [`DashboardCard`](app/components/ui/DashboardCard.tsx:6) e [`DashboardSection`](app/components/ui/DashboardSection.tsx:7)):**
+    *   "Painel do Dia"
+    *   "Prioridades do Dia"
+    *   "Acesso Rápido"
+*   **Links de Acesso Rápido:**
+    *   "Estudos" (com subtítulo "Materiais e Técnicas")
+    *   "Saúde" (com subtítulo "Medicamentos e Bem-estar")
+    *   "Hiperfocos" (com subtítulo "Projetos e Interesses")
+    *   "Lazer" (com subtítulo "Atividades e Descanso")
+
+## Interações com Stores de Estado (Zustand)
+
+A página [`app/page.tsx`](app/page.tsx:1) obtém a maior parte de seus dados dinâmicos através do hook personalizado [`useDashboard`](app/hooks/useDashboard.ts:18). Este hook, por sua vez, interage com as seguintes stores Zustand localizadas em [`app/stores/`](app/stores/):
+
+*   **[`usePainelDiaStore`](app/stores/painelDiaStore.ts:4) (via [`app/hooks/useDashboard.ts:50`](app/hooks/useDashboard.ts:50)):**
+    *   Utilizada para buscar os `blocos` de tempo agendados para o dia, que são exibidos no componente [`PainelDia`](app/components/inicio/PainelDia.tsx:13).
+*   **[`usePrioridadesStore`](app/stores/prioridadesStore.ts:5) (via [`app/hooks/useDashboard.ts:51`](app/hooks/useDashboard.ts:51)):**
+    *   Utilizada para buscar as `prioridades` do dia através da função `getHistoricoPorData`. Essas prioridades são exibidas no componente [`ListaPrioridades`](app/components/inicio/ListaPrioridades.tsx:14) e usadas para calcular as estatísticas de prioridades pendentes e concluídas no [`DashboardSummary`](app/components/ui/DashboardSummary.tsx:9).
+*   **[`usePerfilStore`](app/stores/perfilStore.ts:6) (via [`app/hooks/useDashboard.ts:52`](app/hooks/useDashboard.ts:52)):**
+    *   Utilizada para obter:
+        *   `nome`: Nome do usuário, exibido no [`DashboardHeader`](app/components/ui/DashboardHeader.tsx:91).
+        *   `metasDiarias`: Contém informações sobre `pausasProgramadas` e `tarefasPrioritarias`, usadas para configurar o comportamento do [`LembretePausas`](app/components/inicio/LembretePausas.tsx:15) e potencialmente para a lógica de exibição de prioridades.
+        *   `pausasAtivas`: Um booleano que determina se os lembretes de pausa devem ser mostrados ([`LembretePausas`](app/components/inicio/LembretePausas.tsx:144)).
+        *   `preferenciasVisuais`: Objeto contendo as configurações de acessibilidade (`altoContraste`, `reducaoEstimulos`, `textoGrande`) que são aplicadas dinamicamente ao `document.documentElement` no [`useEffect`](app/page.tsx:62) da página para alterar a aparência global da interface.
+
+Os componentes [`ChecklistMedicamentos`](app/components/inicio/ChecklistMedicamentos.tsx:16) e [`ProximaProvaCard`](app/components/inicio/ProximaProvaCard.tsx:17) provavelmente interagem com suas próprias stores ou com stores mais específicas (ex: `useSaudeStore`, `useConcursosStore`), embora a interação direta não seja visível no código de [`app/page.tsx`](app/page.tsx:1) ou [`app/hooks/useDashboard.ts`](app/hooks/useDashboard.ts:1) e sim encapsulada dentro desses próprios componentes.
+</file>
+
+<file path="technical/03-pages/lazer.md">
+# Documentação da Página: Lazer ([`app/lazer/page.tsx`](app/lazer/page.tsx:1))
+
+Este documento detalha a página de lazer da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.12: Documentação da página [`app/lazer/page.tsx`](app/lazer/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/perfil-ajuda.md">
+# Documentação da Página: Ajuda do Perfil ([`app/perfil/ajuda/page.tsx`](app/perfil/ajuda/page.tsx:1))
+
+Este documento detalha a página de ajuda dentro da seção de perfil do usuário da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.14: Documentação da página [`app/perfil/ajuda/page.tsx`](app/perfil/ajuda/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/perfil.md">
+# Documentação da Página: Perfil ([`app/perfil/page.tsx`](app/perfil/page.tsx:1))
+
+Este documento detalha a página de perfil do usuário da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.13: Documentação da página [`app/perfil/page.tsx`](app/perfil/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/README.md">
+# Documentação das Páginas da Aplicação
+
+Esta seção contém a documentação detalhada para cada página principal (`page.tsx`) da aplicação StayFocus. Cada arquivo markdown abaixo descreve o propósito, funcionalidades, componentes visuais chave, conteúdo textual estático e interações com o estado global (Zustand) da respectiva página.
+
+## Índice de Páginas
+
+*   [Página Inicial (`/`)](./inicio.md)
+*   [Alimentação (`/alimentacao`)](./alimentacao.md)
+*   [Autoconhecimento (`/autoconhecimento`)](./autoconhecimento.md)
+*   [Concursos (`/concursos`)](./concursos.md)
+*   [Detalhes do Concurso (`/concursos/[id]`)](./concursos-id.md)
+*   [Estudos (`/estudos`)](./estudos.md)
+*   [Materiais de Estudo (`/estudos/materiais`)](./estudos-materiais.md)
+*   [Simulado (`/estudos/simulado`)](./estudos-simulado.md)
+*   [Simulado Personalizado (`/estudos/simulado-personalizado`)](./estudos-simulado-personalizado.md)
+*   [Finanças (`/financas`)](./financas.md)
+*   [Hiperfocos (`/hiperfocos`)](./hiperfocos.md)
+*   [Lazer (`/lazer`)](./lazer.md)
+*   [Perfil (`/perfil`)](./perfil.md)
+*   [Ajuda do Perfil (`/perfil/ajuda`)](./perfil-ajuda.md)
+*   [Receitas (`/receitas`)](./receitas.md)
+*   [Detalhes da Receita (`/receitas/[id]`)](./receitas-id.md)
+*   [Adicionar Receita (`/receitas/adicionar`)](./receitas-adicionar.md)
+*   [Editar Receita (`/receitas/editar/[id]`)](./receitas-editar-id.md)
+*   [Lista de Compras (`/receitas/lista-compras`)](./receitas-lista-compras.md)
+*   [Roadmap (`/roadmap`)](./roadmap.md)
+*   [Saúde (`/saude`)](./saude.md)
+*   [Sono (`/sono`)](./sono.md)
+</file>
+
+<file path="technical/03-pages/receitas-adicionar.md">
+# Documentação da Página: Adicionar Receita ([`app/receitas/adicionar/page.tsx`](app/receitas/adicionar/page.tsx:1))
+
+Este documento detalha a página utilizada para adicionar novas receitas à aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.17: Documentação da página [`app/receitas/adicionar/page.tsx`](app/receitas/adicionar/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/receitas-editar-id.md">
+# Documentação da Página: Editar Receita ([`app/receitas/editar/[id]/page.tsx`](app/receitas/editar/[id]/page.tsx:1))
+
+Este documento detalha a página utilizada para editar receitas existentes na aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.18: Documentação da página [`app/receitas/editar/[id]/page.tsx`](app/receitas/editar/[id]/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/receitas-id.md">
+# Documentação da Página: Detalhes da Receita ([`app/receitas/[id]/page.tsx`](app/receitas/[id]/page.tsx:1))
+
+Este documento detalha a página que exibe os detalhes de uma receita específica na aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.16: Documentação da página [`app/receitas/[id]/page.tsx`](app/receitas/[id]/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/receitas-lista-compras.md">
+# Documentação da Página: Lista de Compras ([`app/receitas/lista-compras/page.tsx`](app/receitas/lista-compras/page.tsx:1))
+
+Este documento detalha a página de lista de compras da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.19: Documentação da página [`app/receitas/lista-compras/page.tsx`](app/receitas/lista-compras/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/receitas.md">
+# Documentação da Página: Receitas ([`app/receitas/page.tsx`](app/receitas/page.tsx:1))
+
+Este documento detalha a página de listagem de receitas da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.15: Documentação da página [`app/receitas/page.tsx`](app/receitas/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/roadmap.md">
+# Documentação da Página: Roadmap ([`app/roadmap/page.tsx`](app/roadmap/page.tsx:1))
+
+Este documento detalha a página de roadmap da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.20: Documentação da página [`app/roadmap/page.tsx`](app/roadmap/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/saude.md">
+# Documentação da Página: Saúde ([`app/saude/page.tsx`](app/saude/page.tsx:1))
+
+Este documento detalha a página de saúde da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.21: Documentação da página [`app/saude/page.tsx`](app/saude/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/03-pages/sono.md">
+# Documentação da Página: Sono ([`app/sono/page.tsx`](app/sono/page.tsx:1))
+
+Este documento detalha a página de sono da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 3.22: Documentação da página [`app/sono/page.tsx`](app/sono/page.tsx:1) será inserido aqui.)*
+</file>
+
+<file path="technical/01-project-overview.md">
+# Resumo da Análise do Projeto Anatel2
+
+## Estrutura Geral de Diretórios
+
+O projeto utiliza a estrutura do App Router do Next.js. As principais pastas identificadas são:
+
+*   **`app/`**: Contém a lógica central da aplicação, incluindo:
+    *   Páginas (rotas) da aplicação (ex: [`app/page.tsx`](app/page.tsx:1), [`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1)).
+    *   Layouts globais e específicos (ex: [`app/layout.tsx`](app/layout.tsx:1)).
+    *   **`app/components/`**: Abriga os componentes React reutilizáveis, frequentemente organizados por funcionalidade (ex: [`app/components/alimentacao/`](app/components/alimentacao), [`app/components/ui/`](app/components/ui)).
+    *   **`app/lib/`**: Módulos contendo lógica de negócios, serviços, utilitários e clientes de API (ex: [`app/lib/dataService.ts`](app/lib/dataService.ts:1), [`app/lib/googleDriveClient.ts`](app/lib/googleDriveClient.ts:1)).
+    *   **`app/stores/`**: Contém as lojas (stores) do Zustand para gerenciamento de estado global, segmentadas por domínio da aplicação (ex: [`app/stores/alimentacaoStore.ts`](app/stores/alimentacaoStore.ts:1), [`app/stores/concursosStore.ts`](app/stores/concursosStore.ts:1)).
+*   **`pages/`**: Principalmente utilizado para as API Routes do Next.js (ex: [`pages/api/gerar-questao.ts`](pages/api/gerar-questao.ts:1), [`pages/api/drive/`](pages/api/drive)).
+*   **`public/`**: Armazena arquivos estáticos que são servidos diretamente, como imagens (ex: [`public/images/logo.svg`](public/images/logo.svg)), fontes, arquivos JSON de exemplo (ex: [`public/simulado-exemplo.json`](public/simulado-exemplo.json)) e sons.
+*   **`docs/`**: Contém arquivos de documentação do projeto, como guias e exemplos em Markdown e JSON.
+*   **`perplexity-mcp-server/`**: Um diretório separado que parece conter um servidor MCP (Model Context Protocol), possivelmente para interagir com a API da Perplexity.
+
+## Principais Tecnologias, Frameworks e Bibliotecas
+
+*   **Next.js ([`package.json#L23`](package.json:23))**: Framework React para desenvolvimento de aplicações web full-stack, utilizado para renderização no servidor (SSR), geração de sites estáticos (SSG), roteamento (App Router) e API routes.
+*   **React ([`package.json#L26`](package.json:26))**: Biblioteca JavaScript para construção de interfaces de usuário interativas e componentizadas.
+*   **TypeScript ([`package.json#L45`](package.json:45))**: Superset do JavaScript que adiciona tipagem estática, melhorando a robustez e a manutenibilidade do código. Configurado através do [`tsconfig.json`](tsconfig.json:1).
+*   **Tailwind CSS ([`package.json#L44`](package.json:44))**: Framework CSS utility-first para estilização rápida e customizável. Configurado em [`tailwind.config.js`](tailwind.config.js:1) com um tema customizado e cores específicas para diferentes seções da aplicação.
+*   **Zustand ([`package.json#L32`](package.json:32))**: Biblioteca para gerenciamento de estado global de forma simples e flexível, utilizada nas stores dentro de [`app/stores/`](app/stores).
+*   **Lucide React ([`package.json#L22`](package.json:22))**: Biblioteca de ícones SVG leves e customizáveis.
+*   **date-fns ([`package.json#L19`](package.json:19))**: Biblioteca para manipulação de datas e horários.
+*   **Google APIs (googleapis [`package.json#L20`](package.json:20))**: Biblioteca cliente para interagir com APIs do Google, provavelmente utilizada para integração com o Google Drive, como sugerido pela presença de [`app/lib/googleDriveClient.ts`](app/lib/googleDriveClient.ts:1) e rotas em [`pages/api/drive/`](pages/api/drive).
+*   **Iron Session ([`package.json#L21`](package.json:21))**: Biblioteca para gerenciamento de sessões stateless, útil para autenticação.
+*   **Recharts ([`package.json#L29`](package.json:29))**: Biblioteca para criação de gráficos e visualizações de dados.
+*   **React Markdown ([`package.json#L28`](package.json:28))**: Componente React para renderizar conteúdo Markdown.
+*   **Next Themes ([`package.json#L24`](package.json:24))**: Facilita a implementação de temas (ex: dark/light mode) em aplicações Next.js.
+*   **ESLint ([`package.json#L40`](package.json:40)) / Prettier ([`package.json#L43`](package.json:43))**: Ferramentas para linting e formatação de código, garantindo consistência e qualidade.
+*   **@next/bundle-analyzer ([`package.json#L35`](package.json:35))**: Ferramenta para analisar o tamanho dos bundles gerados pela aplicação Next.js, configurada em [`next.config.js`](next.config.js:1).
+</file>
+
+<file path="technical/02-routing.md">
+# Mapeamento de Páginas e Rotas
+
+Esta seção detalha as principais rotas da aplicação e os arquivos `page.tsx` correspondentes que as definem, com base na estrutura do App Router do Next.js.
+
+*   `/`: [`app/page.tsx`](app/page.tsx:1)
+*   `/alimentacao`: [`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1)
+*   `/autoconhecimento`: [`app/autoconhecimento/page.tsx`](app/autoconhecimento/page.tsx:1)
+*   `/concursos`: [`app/concursos/page.tsx`](app/concursos/page.tsx:1)
+*   `/concursos/[id]`: [`app/concursos/[id]/page.tsx`](app/concursos/[id]/page.tsx:1)
+*   `/estudos`: [`app/estudos/page.tsx`](app/estudos/page.tsx:1)
+*   `/estudos/materiais`: [`app/estudos/materiais/page.tsx`](app/estudos/materiais/page.tsx:1)
+*   `/estudos/simulado`: [`app/estudos/simulado/page.tsx`](app/estudos/simulado/page.tsx:1)
+*   `/estudos/simulado-personalizado`: [`app/estudos/simulado-personalizado/page.tsx`](app/estudos/simulado-personalizado/page.tsx:1)
+*   `/financas`: [`app/financas/page.tsx`](app/financas/page.tsx:1)
+*   `/hiperfocos`: [`app/hiperfocos/page.tsx`](app/hiperfocos/page.tsx:1)
+*   `/lazer`: [`app/lazer/page.tsx`](app/lazer/page.tsx:1)
+*   `/perfil`: [`app/perfil/page.tsx`](app/perfil/page.tsx:1)
+*   `/perfil/ajuda`: [`app/perfil/ajuda/page.tsx`](app/perfil/ajuda/page.tsx:1)
+*   `/receitas`: [`app/receitas/page.tsx`](app/receitas/page.tsx:1)
+*   `/receitas/[id]`: [`app/receitas/[id]/page.tsx`](app/receitas/[id]/page.tsx:1)
+*   `/receitas/adicionar`: [`app/receitas/adicionar/page.tsx`](app/receitas/adicionar/page.tsx:1)
+*   `/receitas/editar/[id]`: [`app/receitas/editar/[id]/page.tsx`](app/receitas/editar/[id]/page.tsx:1)
+*   `/receitas/lista-compras`: [`app/receitas/lista-compras/page.tsx`](app/receitas/lista-compras/page.tsx:1)
+*   `/roadmap`: [`app/roadmap/page.tsx`](app/roadmap/page.tsx:1)
+*   `/saude`: [`app/saude/page.tsx`](app/saude/page.tsx:1)
+*   `/sono`: [`app/sono/page.tsx`](app/sono/page.tsx:1)
+</file>
+
+<file path="technical/04-ui-components.md">
+# 4. Componentes de UI Reutilizáveis ([`app/components/ui/`](app/components/ui/))
+
+Este documento descreve os componentes de UI reutilizáveis encontrados no diretório [`app/components/ui/`](app/components/ui/). Estes componentes são a base para a construção da interface do usuário da aplicação Anatel2 (StayFocus), garantindo consistência visual e funcional.
+
+*(Conteúdo da Subtarefa 4: Análise dos Componentes de UI Reutilizáveis ([`app/components/ui/`](app/components/ui/)) será inserido aqui.)*
+</file>
+
+<file path="technical/05-state-management.md">
+# 5. Gerenciamento de Estado ([`app/stores/`](app/stores/))
+
+Este documento detalha a estratégia e as implementações de gerenciamento de estado utilizadas na aplicação Anatel2 (StayFocus), localizadas principalmente no diretório [`app/stores/`](app/stores/).
+
+*(Conteúdo da Subtarefa 5: Análise do Gerenciamento de Estado ([`app/stores/`](app/stores/)) será inserido aqui.)*
+</file>
+
+<file path="technical/06-libraries-services.md">
+# 6. Bibliotecas e Serviços ([`app/lib/`](app/lib/))
+
+Este documento aborda as bibliotecas externas, utilitários e serviços implementados no diretório [`app/lib/`](app/lib/) que suportam as funcionalidades da aplicação Anatel2 (StayFocus).
+
+*(Conteúdo da Subtarefa 6: Análise dos Utilitários e Serviços ([`app/lib/`](app/lib/)) será inserido aqui.)*
+</file>
+
+<file path="technical/README.md">
+# Documentação Técnica do Projeto StayFocus (Anatel2)
+
+Esta documentação técnica detalha a arquitetura, componentes e funcionalidades do projeto StayFocus (Anatel2). O objetivo é fornecer um guia compreensível para desenvolvedores e partes interessadas sobre os aspectos técnicos da aplicação.
+
+## Índice
+
+*   [Visão Geral do Projeto](./01-project-overview.md)
+*   [Roteamento](./02-routing.md)
+*   [Páginas da Aplicação](./03-pages/README.md)
+*   [Componentes de UI Reutilizáveis](./04-ui-components.md)
+*   [Gerenciamento de Estado](./05-state-management.md)
+*   [Bibliotecas e Serviços Auxiliares](./06-libraries-services.md)
+</file>
+
+<file path="exemplo-receita-unica.json">
+{
+  "nome": "Bolo de Cenoura Simples (Exemplo)",
+  "descricao": "Um bolo de cenoura clássico, fofinho e fácil de fazer.",
+  "categorias": ["sobremesa", "lanche"],
+  "tags": ["Fácil", "Clássico", "Doce"],
+  "tempoPreparo": 45,
+  "porcoes": 8,
+  "calorias": "350 kcal por porção (aprox.)",
+  "imagem": "",
+  "ingredientes": [
+    { "nome": "Cenoura média ralada", "quantidade": 3, "unidade": "unidade" },
+    { "nome": "Ovos", "quantidade": 3, "unidade": "unidade" },
+    { "nome": "Óleo vegetal", "quantidade": 200, "unidade": "ml" },
+    { "nome": "Açúcar", "quantidade": 250, "unidade": "g" },
+    { "nome": "Farinha de trigo", "quantidade": 300, "unidade": "g" },
+    { "nome": "Fermento em pó", "quantidade": 1, "unidade": "colher_sopa" }
+  ],
+  "passos": [
+    "Pré-aqueça o forno a 180°C e unte uma forma.",
+    "No liquidificador, bata as cenouras, os ovos e o óleo até ficar homogêneo.",
+    "Despeje a mistura em uma tigela e adicione o açúcar e a farinha peneirada, misturando bem.",
+    "Por último, incorpore delicadamente o fermento em pó.",
+    "Despeje a massa na forma preparada e leve ao forno por cerca de 35-40 minutos, ou até que um palito inserido no centro saia limpo.",
+    "Deixe esfriar antes de desenformar. Sirva com cobertura de chocolate, se desejar."
+  ]
+}
+</file>
+
+<file path="exemplo-receitas-multiplas.json">
+[
+  {
+    "nome": "Panqueca Americana (Exemplo)",
+    "descricao": "Panquecas fofinhas clássicas para o café da manhã.",
+    "categorias": ["cafe_manha"],
+    "tags": ["Rápido", "Fácil"],
+    "tempoPreparo": 20,
+    "porcoes": 4,
+    "calorias": "250 kcal por porção",
+    "imagem": "",
+    "ingredientes": [
+      { "nome": "Farinha de trigo", "quantidade": 150, "unidade": "g" },
+      { "nome": "Açúcar", "quantidade": 1, "unidade": "colher_sopa" },
+      { "nome": "Fermento em pó", "quantidade": 2, "unidade": "colher_cha" },
+      { "nome": "Sal", "quantidade": 0.5, "unidade": "colher_cha" },
+      { "nome": "Leite", "quantidade": 240, "unidade": "ml" },
+      { "nome": "Ovo", "quantidade": 1, "unidade": "unidade" },
+      { "nome": "Manteiga derretida", "quantidade": 2, "unidade": "colher_sopa" }
+    ],
+    "passos": [
+      "Em uma tigela grande, misture a farinha, o açúcar, o fermento e o sal.",
+      "Em outra tigela, misture o leite, o ovo e a manteiga derretida.",
+      "Despeje os ingredientes líquidos sobre os secos e misture apenas até incorporar (não misture demais).",
+      "Aqueça uma frigideira levemente untada em fogo médio.",
+      "Despeje cerca de 1/4 de xícara de massa por panqueca na frigideira quente.",
+      "Cozinhe por cerca de 2 minutos de cada lado, ou até dourar.",
+      "Sirva quente com mel, frutas ou sua cobertura preferida."
+    ]
+  },
+  {
+    "nome": "Salada Caesar Simples (Exemplo)",
+    "descricao": "Uma versão rápida e fácil da clássica Salada Caesar.",
+    "categorias": ["almoco", "jantar", "salada"],
+    "tags": ["Rápido", "Leve", "Clássico"],
+    "tempoPreparo": 15,
+    "porcoes": 2,
+    "calorias": "400 kcal por porção (com frango)",
+    "imagem": "",
+    "ingredientes": [
+      { "nome": "Alface romana picada", "quantidade": 1, "unidade": "unidade" },
+      { "nome": "Peito de frango grelhado em tiras", "quantidade": 200, "unidade": "g" },
+      { "nome": "Croutons", "quantidade": 50, "unidade": "g" },
+      { "nome": "Queijo parmesão ralado", "quantidade": 30, "unidade": "g" },
+      { "nome": "Molho Caesar pronto", "quantidade": 4, "unidade": "colher_sopa" }
+    ],
+    "passos": [
+      "Em uma saladeira grande, coloque a alface romana picada.",
+      "Adicione o frango grelhado em tiras.",
+      "Regue com o molho Caesar e misture bem para cobrir todas as folhas.",
+      "Adicione os croutons e o queijo parmesão ralado.",
+      "Misture levemente mais uma vez e sirva imediatamente."
+    ]
+  }
+]
+</file>
+
+<file path="guia-receitas.md">
+# Guia de Implementação: Seção de Receitas na Página /alimentacao
+
+## 1. Estrutura de Pastas e Arquivos
+
+Crie a seguinte estrutura sugerida:
+
+```
+/components
+  - ListaReceitas.tsx
+  - FiltroCategorias.tsx
+  - Pesquisa.tsx
+  - Button.tsx
+  - Tag.tsx
+  - Input.tsx
+  - Textarea.tsx
+  - Select.tsx
+  - TagInput.tsx
+  - Checkbox.tsx
+/pages ou /app
+  /receitas
+    - index.tsx (ou page.tsx)
+    - [id].tsx (ou [id]/page.tsx)
+    - adicionar.tsx (ou adicionar/page.tsx)
+    - lista-compras.tsx (ou lista-compras/page.tsx)
+/stores
+  - receitasStore.ts
+  - alimentacaoStore.ts
+```
+
+## 2. Store de Receitas
+
+Implemente o arquivo `stores/receitasStore.ts` conforme o exemplo do documento de proposta. Isso garante o gerenciamento de receitas, favoritos e integração com o localStorage.
+
+## 3. Componentes de UI
+
+Implemente os componentes principais:
+- `ReceitasPage` (listagem e filtro)
+- `DetalhesReceita` (visualização detalhada)
+- `AdicionarReceita` (formulário de criação/edição)
+- `ListaCompras` (lista de compras baseada nas receitas)
+
+Você pode copiar e colar os exemplos do documento de proposta, adaptando para o seu padrão de projeto (Next.js App Router ou Pages Router).
+
+## 4. Integração com Alimentação
+
+No arquivo da página `/alimentacao`, adicione um link ou botão para acessar a seção de receitas. Exemplo:
+
+```tsx
+// Em /pages/alimentacao/index.tsx ou /app/alimentacao/page.tsx
+import Link from 'next/link';
+
+export default function AlimentacaoPage() {
+  return (
+    <div>
+      <h1>Alimentação</h1>
+      {/* ...outros conteúdos... */}
+      <Link href="/receitas">
+        <button className="bg-primary-500 text-white px-4 py-2 rounded">
+          Ir para Receitas
+        </button>
+      </Link>
+    </div>
+  );
+}
+```
+
+## 5. Rotas
+
+Garanta que as rotas estejam configuradas conforme o seu Next.js (App Router ou Pages Router). Isso permite acessar `/receitas`, `/receitas/adicionar`, `/receitas/[id]` e `/receitas/lista-compras`.
+
+## 6. Sidebar/Navegação
+
+Adicione o link para receitas no seu Sidebar, conforme sugerido:
+
+```tsx
+<Link href="/receitas">
+  <Book /> Receitas
+</Link>
+```
+
+## 7. Testes e Ajustes
+
+- Teste a adição, edição, remoção e visualização de receitas.
+- Teste a integração com o planejador de refeições.
+- Teste a lista de compras.
+- Ajuste responsividade e UX conforme necessário.
+
+---
+
+## Dúvidas Frequentes
+
+- **Precisa de backend?** Não obrigatoriamente, pois o Zustand com persistência já salva no localStorage. Mas para multiusuários ou backup, um backend seria ideal.
+- **Como tratar imagens?** O exemplo usa `URL.createObjectURL`, mas para produção, use um serviço de upload (Cloudinary, S3, etc).
+- **Como integrar com outras áreas?** Use os IDs das receitas para relacionar com refeições planejadas, finanças, etc.
+
+---
+</file>
+
+<file path="receita-plan.md">
+## Proposta para uma Seção de Receitas dentro da Pagina Alimentação (`/receitas`)
+
+### Funcionalidades Principais:
+
+1. **Catálogo de Receitas**
+   - Visualização em grid/lista de receitas salvas
+   - Filtragem por categorias (café da manhã, almoço, jantar, lanches, etc.)
+   - Pesquisa por ingredientes ou nome
+
+2. **Detalhes da Receita**
+   - Ingredientes com quantidades
+   - Instruções passo a passo
+   - Tempo de preparo e porções
+   - Informações nutricionais
+   - Tags para categorização (sem glúten, vegano, etc.)
+
+3. **Adição/Edição de Receitas**
+   - Formulário para adicionar novas receitas
+   - Upload de imagens
+   - Editor para formatação do texto
+
+4. **Integração com Alimentação**
+   - Adicionar receita ao planejador de refeições
+   - Registrar refeição baseada em receita
+
+5. **Funcionalidades Extra**
+   - Lista de compras baseada em receitas selecionadas
+   - Ajuste automático de quantidades baseado no número de porções
+   - Favoritar receitas
+
+Possivel estrutura de código e componentes para essa seção:
+
+### Componentes Chave:
+
+#### `ReceitasPage.tsx` (Página principal)
+```tsx
+import { useState } from 'react';
+import { ListaReceitas } from './ListaReceitas';
+import { FiltroCategorias } from './FiltroCategorias';
+import { Pesquisa } from '../components/Pesquisa';
+import { useReceitasStore } from '../stores/receitasStore';
+
+export default function ReceitasPage() {
+  const { receitas } = useReceitasStore();
+  const [filtroCategoria, setFiltroCategoria] = useState('todas');
+  const [termoPesquisa, setTermoPesquisa] = useState('');
+  
+  const receitasFiltradas = receitas
+    .filter(receita => filtroCategoria === 'todas' || receita.categorias.includes(filtroCategoria))
+    .filter(receita => 
+      receita.nome.toLowerCase().includes(termoPesquisa.toLowerCase()) ||
+      receita.ingredientes.some(ing => ing.nome.toLowerCase().includes(termoPesquisa.toLowerCase()))
+    );
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-6">Minhas Receitas</h1>
+      
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <Pesquisa 
+          placeholder="Buscar por nome ou ingrediente" 
+          valor={termoPesquisa} 
+          aoMudar={setTermoPesquisa} 
+        />
+        <FiltroCategorias 
+          categoriaAtual={filtroCategoria} 
+          aoSelecionar={setFiltroCategoria} 
+        />
+      </div>
+      
+      <ListaReceitas receitas={receitasFiltradas} />
+    </div>
+  );
+}
+```
+
+#### `DetalhesReceita.tsx` (Visualização detalhada)
+```tsx
+import { useState } from 'react';
+import { useReceitasStore } from '../stores/receitasStore';
+import { useAlimentacaoStore } from '../stores/alimentacaoStore';
+import { Button } from '../components/Button';
+import { Tag } from '../components/Tag';
+
+export function DetalhesReceita({ id }) {
+  const { obterReceitaPorId } = useReceitasStore();
+  const { adicionarAoPlanejador } = useAlimentacaoStore();
+  const [porcoes, setPorcoes] = useState(1);
+  
+  const receita = obterReceitaPorId(id);
+  
+  if (!receita) return <p>Receita não encontrada</p>;
+  
+  const ajustarQuantidade = (quantidade) => {
+    return (quantidade * porcoes / receita.porcoes).toFixed(1);
+  };
+  
+  const adicionarAoPlanejamento = () => {
+    adicionarAoPlanejador({
+      descricao: receita.nome,
+      horario: "",
+      receitaId: receita.id
+    });
+  };
+  
+  return (
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="relative h-64 rounded-lg overflow-hidden mb-6">
+        {receita.imagem ? (
+          <img 
+            src={receita.imagem} 
+            alt={receita.nome} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span>Sem imagem</span>
+          </div>
+        )}
+      </div>
+      
+      <h1 className="text-3xl font-bold mb-2">{receita.nome}</h1>
+      
+      <div className="flex flex-wrap gap-2 mb-6">
+        {receita.tags.map(tag => (
+          <Tag key={tag}>{tag}</Tag>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-primary-50 p-3 rounded-lg text-center">
+          <p className="text-sm">Tempo de Preparo</p>
+          <p className="font-bold">{receita.tempoPreparo} min</p>
+        </div>
+        <div className="bg-primary-50 p-3 rounded-lg text-center">
+          <p className="text-sm">Porções</p>
+          <div className="flex items-center justify-center gap-2">
+            <button onClick={() => setPorcoes(Math.max(1, porcoes - 1))}>-</button>
+            <p className="font-bold">{porcoes}</p>
+            <button onClick={() => setPorcoes(porcoes + 1)}>+</button>
+          </div>
+        </div>
+        <div className="bg-primary-50 p-3 rounded-lg text-center">
+          <p className="text-sm">Calorias (por porção)</p>
+          <p className="font-bold">{receita.calorias || "Não informado"}</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-1">
+          <h2 className="text-xl font-bold mb-4">Ingredientes</h2>
+          <ul className="space-y-2">
+            {receita.ingredientes.map((ing, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="font-medium">{ajustarQuantidade(ing.quantidade)} {ing.unidade}</span>
+                <span>{ing.nome}</span>
+              </li>
+            ))}
+          </ul>
+          
+          <div className="mt-6">
+            <Button onClick={adicionarAoPlanejamento} color="primary">
+              Adicionar ao Planejador
+            </Button>
+          </div>
+        </div>
+        
+        <div className="md:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Modo de Preparo</h2>
+          <ol className="space-y-4 list-decimal pl-4">
+            {receita.passos.map((passo, index) => (
+              <li key={index} className="pl-2">
+                {passo}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### `AdicionarReceita.tsx` (Formulário de adição/edição)
+```tsx
+import { useState } from 'react';
+import { useReceitasStore } from '../stores/receitasStore';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { Textarea } from '../components/Textarea';
+import { Select } from '../components/Select';
+import { TagInput } from '../components/TagInput';
+
+export function AdicionarReceita({ receitaParaEditar, aoFinalizar }) {
+  const { adicionarReceita, atualizarReceita } = useReceitasStore();
+  const editando = !!receitaParaEditar;
+  
+  const [receita, setReceita] = useState({
+    id: receitaParaEditar?.id || Date.now().toString(),
+    nome: receitaParaEditar?.nome || '',
+    descricao: receitaParaEditar?.descricao || '',
+    categorias: receitaParaEditar?.categorias || [],
+    tags: receitaParaEditar?.tags || [],
+    tempoPreparo: receitaParaEditar?.tempoPreparo || 30,
+    porcoes: receitaParaEditar?.porcoes || 2,
+    calorias: receitaParaEditar?.calorias || '',
+    imagem: receitaParaEditar?.imagem || '',
+    ingredientes: receitaParaEditar?.ingredientes || [{ nome: '', quantidade: 1, unidade: 'g' }],
+    passos: receitaParaEditar?.passos || ['']
+  });
+  
+  const opcoesUnidades = [
+    { value: 'g', label: 'gramas (g)' },
+    { value: 'ml', label: 'mililitros (ml)' },
+    { value: 'unidade', label: 'unidade(s)' },
+    { value: 'colher_sopa', label: 'colher(es) de sopa' },
+    { value: 'colher_cha', label: 'colher(es) de chá' },
+    { value: 'xicara', label: 'xícara(s)' },
+    { value: 'a_gosto', label: 'a gosto' },
+  ];
+  
+  const categorias = [
+    { value: 'cafe_manha', label: 'Café da Manhã' },
+    { value: 'almoco', label: 'Almoço' },
+    { value: 'jantar', label: 'Jantar' },
+    { value: 'lanche', label: 'Lanche' },
+    { value: 'sobremesa', label: 'Sobremesa' },
+    { value: 'bebida', label: 'Bebida' }
+  ];
+  
+  const atualizarCampo = (campo, valor) => {
+    setReceita({ ...receita, [campo]: valor });
+  };
+  
+  const atualizarIngrediente = (index, campo, valor) => {
+    const novosIngredientes = [...receita.ingredientes];
+    novosIngredientes[index] = { ...novosIngredientes[index], [campo]: valor };
+    setReceita({ ...receita, ingredientes: novosIngredientes });
+  };
+  
+  const adicionarIngrediente = () => {
+    setReceita({
+      ...receita,
+      ingredientes: [...receita.ingredientes, { nome: '', quantidade: 1, unidade: 'g' }]
+    });
+  };
+  
+  const removerIngrediente = (index) => {
+    const novosIngredientes = [...receita.ingredientes];
+    novosIngredientes.splice(index, 1);
+    setReceita({ ...receita, ingredientes: novosIngredientes });
+  };
+  
+  const atualizarPasso = (index, valor) => {
+    const novosPassos = [...receita.passos];
+    novosPassos[index] = valor;
+    setReceita({ ...receita, passos: novosPassos });
+  };
+  
+  const adicionarPasso = () => {
+    setReceita({
+      ...receita,
+      passos: [...receita.passos, '']
+    });
+  };
+  
+  const removerPasso = (index) => {
+    const novosPassos = [...receita.passos];
+    novosPassos.splice(index, 1);
+    setReceita({ ...receita, passos: novosPassos });
+  };
+  
+  const salvarReceita = () => {
+    // Validação básica
+    if (!receita.nome || receita.ingredientes.some(ing => !ing.nome) || receita.passos.some(p => !p)) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+    
+    if (editando) {
+      atualizarReceita(receita);
+    } else {
+      adicionarReceita(receita);
+    }
+    
+    aoFinalizar && aoFinalizar(receita);
+  };
+  
+  return (
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">
+        {editando ? 'Editar Receita' : 'Nova Receita'}
+      </h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label className="block mb-2 font-medium">Nome da Receita*</label>
+          <Input
+            value={receita.nome}
+            onChange={(e) => atualizarCampo('nome', e.target.value)}
+            placeholder="Ex: Panquecas de Banana"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block mb-2 font-medium">Categorias</label>
+          <Select
+            options={categorias}
+            value={receita.categorias}
+            onChange={(value) => atualizarCampo('categorias', value)}
+            multiple
+          />
+        </div>
+      </div>
+      
+      <div className="mb-6">
+        <label className="block mb-2 font-medium">Descrição Breve</label>
+        <Textarea
+          value={receita.descricao}
+          onChange={(e) => atualizarCampo('descricao', e.target.value)}
+          placeholder="Uma breve descrição sobre a receita..."
+          rows={2}
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <label className="block mb-2 font-medium">Tempo de Preparo (min)*</label>
+          <Input
+            type="number"
+            value={receita.tempoPreparo}
+            onChange={(e) => atualizarCampo('tempoPreparo', parseInt(e.target.value))}
+            min={1}
+          />
+        </div>
+        
+        <div>
+          <label className="block mb-2 font-medium">Porções*</label>
+          <Input
+            type="number"
+            value={receita.porcoes}
+            onChange={(e) => atualizarCampo('porcoes', parseInt(e.target.value))}
+            min={1}
+          />
+        </div>
+        
+        <div>
+          <label className="block mb-2 font-medium">Calorias (por porção)</label>
+          <Input
+            type="number"
+            value={receita.calorias}
+            onChange={(e) => atualizarCampo('calorias', e.target.value)}
+            min={0}
+            placeholder="Opcional"
+          />
+        </div>
+      </div>
+      
+      <div className="mb-6">
+        <label className="block mb-2 font-medium">Tags</label>
+        <TagInput
+          tags={receita.tags}
+          onChange={(tags) => atualizarCampo('tags', tags)}
+          suggestions={['Sem Glúten', 'Vegano', 'Vegetariano', 'Low Carb', 'Rápido', 'Saudável']}
+        />
+      </div>
+      
+      <div className="mb-6">
+        <label className="block mb-2 font-medium">Imagem</label>
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            // Aqui você implementaria o upload da imagem
+            // Por simplicidade, simulamos um URL da imagem
+            if (e.target.files?.[0]) {
+              const fileURL = URL.createObjectURL(e.target.files[0]);
+              atualizarCampo('imagem', fileURL);
+            }
+          }}
+        />
+        {receita.imagem && (
+          <div className="mt-2 relative h-40 w-40">
+            <img 
+              src={receita.imagem} 
+              alt="Preview" 
+              className="w-full h-full object-cover rounded"
+            />
+          </div>
+        )}
+      </div>
+      
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-bold">Ingredientes*</h2>
+          <Button onClick={adicionarIngrediente} size="sm">+ Adicionar</Button>
+        </div>
+        
+        {receita.ingredientes.map((ingrediente, index) => (
+          <div key={index} className="flex items-center gap-3 mb-2">
+            <Input
+              type="number"
+              value={ingrediente.quantidade}
+              onChange={(e) => atualizarIngrediente(index, 'quantidade', parseFloat(e.target.value))}
+              min={0}
+              step={0.1}
+              className="w-24"
+            />
+            
+            <Select
+              options={opcoesUnidades}
+              value={ingrediente.unidade}
+              onChange={(value) => atualizarIngrediente(index, 'unidade', value)}
+              className="w-40"
+            />
+            
+            <Input
+              value={ingrediente.nome}
+              onChange={(e) => atualizarIngrediente(index, 'nome', e.target.value)}
+              placeholder="Ingrediente"
+              className="flex-1"
+            />
+            
+            <Button 
+              onClick={() => removerIngrediente(index)} 
+              variant="ghost" 
+              size="sm"
+              disabled={receita.ingredientes.length <= 1}
+            >
+              X
+            </Button>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-bold">Modo de Preparo*</h2>
+          <Button onClick={adicionarPasso} size="sm">+ Adicionar</Button>
+        </div>
+        
+        {receita.passos.map((passo, index) => (
+          <div key={index} className="flex items-start gap-3 mb-4">
+            <div className="mt-2 font-medium">{index + 1}.</div>
+            <Textarea
+              value={passo}
+              onChange={(e) => atualizarPasso(index, e.target.value)}
+              placeholder={`Passo ${index + 1}`}
+              className="flex-1"
+              rows={2}
+            />
+            
+            <Button 
+              onClick={() => removerPasso(index)} 
+              variant="ghost" 
+              size="sm"
+              disabled={receita.passos.length <= 1}
+            >
+              X
+            </Button>
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-end gap-4">
+        <Button onClick={() => aoFinalizar?.()} variant="outline">Cancelar</Button>
+        <Button onClick={salvarReceita} color="primary">Salvar Receita</Button>
+      </div>
+    </div>
+  );
+}
+```
+
+### Store para Gerenciamento de Estado
+
+Vamos criar uma store Zustand para armazenar e gerenciar as receitas:
+
+```tsx
+// stores/receitasStore.ts
+import create from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface Ingrediente {
+  nome: string;
+  quantidade: number;
+  unidade: string;
+}
+
+interface Receita {
+  id: string;
+  nome: string;
+  descricao: string;
+  categorias: string[];
+  tags: string[];
+  tempoPreparo: number;
+  porcoes: number;
+  calorias: string;
+  imagem: string;
+  ingredientes: Ingrediente[];
+  passos: string[];
+}
+
+interface ReceitasStore {
+  receitas: Receita[];
+  adicionarReceita: (receita: Receita) => void;
+  atualizarReceita: (receita: Receita) => void;
+  removerReceita: (id: string) => void;
+  obterReceitaPorId: (id: string) => Receita | undefined;
+  favoritos: string[];
+  alternarFavorito: (id: string) => void;
+}
+
+export const useReceitasStore = create<ReceitasStore>()(
+  persist(
+    (set, get) => ({
+      receitas: [],
+      adicionarReceita: (receita) => 
+        set((state) => ({ receitas: [...state.receitas, receita] })),
+      atualizarReceita: (receita) =>
+        set((state) => ({
+          receitas: state.receitas.map((r) => 
+            r.id === receita.id ? receita : r
+          ),
+        })),
+      removerReceita: (id) =>
+        set((state) => ({
+          receitas: state.receitas.filter((r) => r.id !== id),
+        })),
+      obterReceitaPorId: (id) => {
+        return get().receitas.find((r) => r.id === id);
+      },
+      favoritos: [],
+      alternarFavorito: (id) => 
+        set((state) => {
+          if (state.favoritos.includes(id)) {
+            return { favoritos: state.favoritos.filter((fav) => fav !== id) };
+          } else {
+            return { favoritos: [...state.favoritos, id] };
+          }
+        }),
+    }),
+    {
+      name: 'receitas-storage',
+    }
+  )
+);
+```
+
+### Integração com a Alimentação
+
+Para integrar a funcionalidade de receitas com a seção de alimentação existente, podemos modificar o `PlanejadorRefeicoes.tsx` para suportar a adição de receitas:
+
+```tsx
+// Modificação para o PlanejadorRefeicoes.tsx
+import { useState, useEffect } from 'react';
+import { useAlimentacaoStore } from '../stores/alimentacaoStore';
+import { useReceitasStore } from '../stores/receitasStore';
+
+export function PlanejadorRefeicoes() {
+  const { refeicoesPlanejadas, adicionarRefeicao } = useAlimentacaoStore();
+  const { receitas } = useReceitasStore();
+  const [novaRefeicao, setNovaRefeicao] = useState({
+    horario: "",
+    descricao: "",
+    receitaId: ""
+  });
+  
+  const handleAdicionarRefeicao = () => {
+    adicionarRefeicao(
+      novaRefeicao.horario, 
+      novaRefeicao.descricao, 
+      novaRefeicao.receitaId
+    );
+    
+    // Resetar o formulário
+    setNovaRefeicao({
+      horario: "",
+      descricao: "",
+      receitaId: ""
+    });
+  };
+  
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Planejador de Refeições</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label className="block mb-1">Horário</label>
+          <input
+            type="time"
+            value={novaRefeicao.horario}
+            onChange={(e) => setNovaRefeicao({...novaRefeicao, horario: e.target.value})}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        
+        <div>
+          <label className="block mb-1">Descrição</label>
+          <input
+            type="text"
+            value={novaRefeicao.descricao}
+            onChange={(e) => setNovaRefeicao({...novaRefeicao, descricao: e.target.value})}
+            placeholder="Ex: Café da manhã"
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        
+        <div>
+          <label className="block mb-1">Receita (opcional)</label>
+          <select
+            value={novaRefeicao.receitaId}
+            onChange={(e) => setNovaRefeicao({...novaRefeicao, receitaId: e.target.value})}
+            className="w-full p-2 border rounded"
+          >
+            <option value="">Selecione uma receita</option>
+            {receitas.map((receita) => (
+              <option key={receita.id} value={receita.id}>
+                {receita.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <button
+        onClick={handleAdicionarRefeicao}
+        disabled={!novaRefeicao.horario || !novaRefeicao.descricao}
+        className="bg-primary-500 text-white px-4 py-2 rounded disabled:opacity-50"
+      >
+        Adicionar Refeição
+      </button>
+      
+      <div className="mt-6">
+        <h3 className="font-medium mb-2">Refeições Planejadas</h3>
+        {refeicoesPlanejadas.length === 0 ? (
+          <p className="text-gray-500">Nenhuma refeição planejada</p>
+        ) : (
+          <ul className="space-y-2">
+            {refeicoesPlanejadas.map((refeicao, index) => {
+              const receitaAssociada = refeicao.receitaId 
+                ? receitas.find(r => r.id === refeicao.receitaId) 
+                : null;
+                
+              return (
+                <li key={index} className="p-3 bg-gray-50 rounded">
+                  <div className="font-medium">{refeicao.horario} - {refeicao.descricao}</div>
+                  {receitaAssociada && (
+                    <div className="text-sm text-primary-600 mt-1">
+                      Receita: {receitaAssociada.nome}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+### Componente de Lista de Compras (Funcionalidade Extra)
+
+```tsx
+import { useState } from 'react';
+import { useReceitasStore } from '../stores/receitasStore';
+import { Checkbox } from '../components/Checkbox';
+import { Button } from '../components/Button';
+
+export function ListaCompras() {
+  const { receitas } = useReceitasStore();
+  const [receitasSelecionadas, setReceitasSelecionadas] = useState<string[]>([]);
+  const [porcoes, setPorcoes] = useState<Record<string, number>>({});
+  const [itensComprados, setItensComprados] = useState<string[]>([]);
+  
+  // Inicializar porcões ao selecionar uma receita
+  const toggleReceitaSelecionada = (id: string) => {
+    if (receitasSelecionadas.includes(id)) {
+      setReceitasSelecionadas(receitasSelecionadas.filter(rid => rid !== id));
+      
+      // Remover do objeto de porções
+      const novasPorcoes = { ...porcoes };
+      delete novasPorcoes[id];
+      setPorcoes(novasPorcoes);
+    } else {
+      setReceitasSelecionadas([...receitasSelecionadas, id]);
+      
+      // Inicializar com o número de porções da receita
+      const receita = receitas.find(r => r.id === id);
+      if (receita) {
+        setPorcoes({
+          ...porcoes,
+          [id]: receita.porcoes
+        });
+      }
+    }
+  };
+  
+  const atualizarPorcoes = (id: string, valor: number) => {
+    setPorcoes({
+      ...porcoes,
+      [id]: Math.max(1, valor)
+    });
+  };
+  
+  // Agrupar ingredientes similares e calcular quantidades
+  const gerarListaCompras = () => {
+    const ingredientesAgrupados: Record<string, { 
+      nome: string, 
+      quantidadeTotal: number, 
+      unidade: string 
+    }> = {};
+    
+    // Para cada receita selecionada
+    receitasSelecionadas.forEach(id => {
+      const receita = receitas.find(r => r.id === id);
+      if (!receita) return;
+      
+      const fatorMultiplicacao = porcoes[id] / receita.porcoes;
+      
+      // Para cada ingrediente na receita
+      receita.ingredientes.forEach(ing => {
+        // Criar uma chave única para o ingrediente (nome + unidade)
+        const chave = `${ing.nome}_${ing.unidade}`;
+        
+        if (ingredientesAgrupados[chave]) {
+          // Se já existe, adicionar à quantidade
+          ingredientesAgrupados[chave].quantidadeTotal += ing.quantidade * fatorMultiplicacao;
+        } else {
+          // Se não existe, criar nova entrada
+          ingredientesAgrupados[chave] = {
+            nome: ing.nome,
+            quantidadeTotal: ing.quantidade * fatorMultiplicacao,
+            unidade: ing.unidade
+          };
+        }
+      });
+    });
+    
+    // Converter para array e ordenar
+    return Object.values(ingredientesAgrupados)
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  };
+  
+  const listaCompras = gerarListaCompras();
+  
+  const toggleItemComprado = (item: string) => {
+    if (itensComprados.includes(item)) {
+      setItensComprados(itensComprados.filter(i => i !== item));
+    } else {
+      setItensComprados([...itensComprados, item]);
+    }
+  };
+  
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-6">Lista de Compras</h1>
+      
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4">Selecione as Receitas</h2>
+        
+        {receitas.length === 0 ? (
+          <p
+Vou continuar com o desenvolvimento do componente de Lista de Compras e finalizar a proposta para a seção de receitas.
+
+```tsx
+// Continuação do ListaCompras.tsx
+        {receitas.length === 0 ? (
+          <p className="text-gray-500">
+            Nenhuma receita cadastrada. Adicione receitas para criar uma lista de compras.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {receitas.map(receita => (
+              <div 
+                key={receita.id} 
+                className={`p-3 border rounded cursor-pointer transition-colors ${
+                  receitasSelecionadas.includes(receita.id) 
+                    ? 'border-primary-500 bg-primary-50' 
+                    : 'border-gray-200'
+                }`}
+                onClick={() => toggleReceitaSelecionada(receita.id)}
+              >
+                <div className="flex items-start gap-3">
+                  <Checkbox 
+                    checked={receitasSelecionadas.includes(receita.id)}
+                    onChange={() => {}} // Gerenciado pelo click no container
+                  />
+                  <div>
+                    <p className="font-medium">{receita.nome}</p>
+                    {receitasSelecionadas.includes(receita.id) && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-sm">Porções:</span>
+                        <button 
+                          className="w-6 h-6 bg-gray-200 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            atualizarPorcoes(receita.id, (porcoes[receita.id] || 1) - 1);
+                          }}
+                        >
+                          -
+                        </button>
+                        <span>{porcoes[receita.id] || receita.porcoes}</span>
+                        <button 
+                          className="w-6 h-6 bg-gray-200 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            atualizarPorcoes(receita.id, (porcoes[receita.id] || 1) + 1);
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {receitasSelecionadas.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Lista de Compras</h2>
+          
+          {listaCompras.length === 0 ? (
+            <p className="text-gray-500">
+              Nenhum ingrediente encontrado nas receitas selecionadas.
+            </p>
+          ) : (
+            <>
+              <div className="mb-4 flex gap-2">
+                <Button 
+                  onClick={() => setItensComprados([])} 
+                  variant="outline"
+                >
+                  Desmarcar Todos
+                </Button>
+                <Button 
+                  onClick={() => setItensComprados(listaCompras.map(i => `${i.nome}_${i.unidade}`))} 
+                  variant="outline"
+                >
+                  Marcar Todos
+                </Button>
+              </div>
+              
+              <ul className="space-y-2 mb-6">
+                {listaCompras.map((item, index) => {
+                  const itemKey = `${item.nome}_${item.unidade}`;
+                  const isComprado = itensComprados.includes(itemKey);
+                  
+                  return (
+                    <li 
+                      key={index} 
+                      className={`p-3 border rounded flex items-center gap-3 ${
+                        isComprado ? 'bg-gray-100' : 'bg-white'
+                      }`}
+                    >
+                      <Checkbox 
+                        checked={isComprado}
+                        onChange={() => toggleItemComprado(itemKey)}
+                      />
+                      <span className={isComprado ? 'line-through text-gray-500' : ''}>
+                        <span className="font-medium">
+                          {item.quantidadeTotal.toFixed(1)} {item.unidade}
+                        </span>
+                        {' '}{item.nome}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              
+              <Button color="primary">
+                Compartilhar Lista
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Navegação e Rotas
+
+Para completar a implementação, precisamos adicionar as rotas e links de navegação:
+
+#### Rotas no Next.js (pasta `app` ou `pages` dependendo da versão do Next.js)
+
+Se estiver usando o App Router (Next.js >= 13):
+
+```tsx
+// app/receitas/page.tsx
+export default function ReceitasPage() {
+  return <ReceitasPage />;
+}
+
+// app/receitas/[id]/page.tsx
+export default function ReceitaDetalhesPage({ params }) {
+  return <DetalhesReceita id={params.id} />;
+}
+
+// app/receitas/adicionar/page.tsx
+export default function AdicionarReceitaPage() {
+  return <AdicionarReceita />;
+}
+
+// app/receitas/lista-compras/page.tsx
+export default function ListaComprasPage() {
+  return <ListaCompras />;
+}
+```
+
+Ou, se estiver usando o Pages Router (versões anteriores do Next.js):
+
+```tsx
+// pages/receitas/index.tsx
+export default function ReceitasPage() {
+  return <ReceitasPage />;
+}
+
+// pages/receitas/[id].tsx
+export default function ReceitaDetalhesPage({ id }) {
+  return <DetalhesReceita id={id} />;
+}
+
+// pages/receitas/adicionar.tsx
+export default function AdicionarReceitaPage() {
+  return <AdicionarReceita />;
+}
+
+// pages/receitas/lista-compras.tsx
+export default function ListaComprasPage() {
+  return <ListaCompras />;
+}
+```
+
+#### Atualização do Sidebar para incluir a seção de Receitas
+
+```tsx
+// Modificação no Sidebar.tsx
+import { Utensils, Book, ShoppingCart } from 'lucide-react'; // Adicione os imports necessários
+
+// No componente Sidebar, adicione:
+<Link href="/alimentacao">
+  <Utensils /> Alimentação
+</Link>
+<Link href="/receitas">
+  <Book /> Receitas
+</Link>
+```
+
+## Considerações de Implementação
+
+### 1. Armazenamento de Dados
+- Estou utilizando o Zustand com middleware `persist` para armazenar as receitas no localStorage.
+- Para uma aplicação mais robusta, considere implementar um backend com banco de dados.
+
+### 2. Manipulação de Imagens
+- O upload de imagens no formulário foi implementado de forma simplificada com URL.createObjectURL.
+- Para uma implementação completa, considere:
+  - Compressão de imagens no cliente
+  - Upload para um serviço de armazenamento (S3, Cloudinary, etc.)
+  - Implementar cache e otimização de imagens
+
+### 3. Responsividade
+- Os componentes foram projetados com classes responsivas (grid-cols-1 md:grid-cols-3, etc.)
+- Teste o layout em diferentes tamanhos de telas para garantir boa experiência móvel
+
+### 4. Recursos Adicionais que Podem Ser Implementados
+- **Sistema de avaliação** - Permitir classificar receitas com estrelas
+- **Comentários** - Adicionar notas pessoais a cada receita
+- **Calendário de refeições** - Visualização em formato de calendário para o planejamento
+- **Importação/exportação** - Permitir importar receitas de outros sites ou exportar para formatos como PDF
+- **Versões de receitas** - Salvar variações de uma mesma receita
+</file>
+
+</files>
