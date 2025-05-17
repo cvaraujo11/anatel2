@@ -1,0 +1,26 @@
+# Mapeamento de Páginas e Rotas
+
+Esta seção detalha as principais rotas da aplicação e os arquivos `page.tsx` correspondentes que as definem, com base na estrutura do App Router do Next.js.
+
+*   `/`: [`app/page.tsx`](app/page.tsx:1)
+*   `/alimentacao`: [`app/alimentacao/page.tsx`](app/alimentacao/page.tsx:1)
+*   `/autoconhecimento`: [`app/autoconhecimento/page.tsx`](app/autoconhecimento/page.tsx:1)
+*   `/concursos`: [`app/concursos/page.tsx`](app/concursos/page.tsx:1)
+*   `/concursos/[id]`: [`app/concursos/[id]/page.tsx`](app/concursos/[id]/page.tsx:1)
+*   `/estudos`: [`app/estudos/page.tsx`](app/estudos/page.tsx:1)
+*   `/estudos/materiais`: [`app/estudos/materiais/page.tsx`](app/estudos/materiais/page.tsx:1)
+*   `/estudos/simulado`: [`app/estudos/simulado/page.tsx`](app/estudos/simulado/page.tsx:1)
+*   `/estudos/simulado-personalizado`: [`app/estudos/simulado-personalizado/page.tsx`](app/estudos/simulado-personalizado/page.tsx:1)
+*   `/financas`: [`app/financas/page.tsx`](app/financas/page.tsx:1)
+*   `/hiperfocos`: [`app/hiperfocos/page.tsx`](app/hiperfocos/page.tsx:1)
+*   `/lazer`: [`app/lazer/page.tsx`](app/lazer/page.tsx:1)
+*   `/perfil`: [`app/perfil/page.tsx`](app/perfil/page.tsx:1)
+*   `/perfil/ajuda`: [`app/perfil/ajuda/page.tsx`](app/perfil/ajuda/page.tsx:1)
+*   `/receitas`: [`app/receitas/page.tsx`](app/receitas/page.tsx:1)
+*   `/receitas/[id]`: [`app/receitas/[id]/page.tsx`](app/receitas/[id]/page.tsx:1)
+*   `/receitas/adicionar`: [`app/receitas/adicionar/page.tsx`](app/receitas/adicionar/page.tsx:1)
+*   `/receitas/editar/[id]`: [`app/receitas/editar/[id]/page.tsx`](app/receitas/editar/[id]/page.tsx:1)
+*   `/receitas/lista-compras`: [`app/receitas/lista-compras/page.tsx`](app/receitas/lista-compras/page.tsx:1)
+*   `/roadmap`: [`app/roadmap/page.tsx`](app/roadmap/page.tsx:1)
+*   `/saude`: [`app/saude/page.tsx`](app/saude/page.tsx:1)
+*   `/sono`: [`app/sono/page.tsx`](app/sono/page.tsx:1)
