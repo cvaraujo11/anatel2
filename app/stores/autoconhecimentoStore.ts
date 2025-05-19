@@ -1,160 +1,89 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { NotaAutoconhecimento } from '../hooks/useNotasAutoconhecimento'
 
-// Tipo para as notas
-export type Nota = {
-  id: string
-  titulo: string
-  conteudo: string
-  secao: 'quem-sou' | 'meus-porques' | 'meus-padroes'
-  tags: string[]
-  dataCriacao: string
-  dataAtualizacao: string
-  imagemUrl?: string // URL para imagem âncora (opcional)
-}
+// Mapeamento entre tipos de seção e categorias no banco
+export const secaoParaCategoria = {
+  'quem-sou': 'quem_sou',
+  'meus-porques': 'meus_porques',
+  'meus-padroes': 'meus_padroes'
+} as const;
+
+export const categoriaParaSecao = {
+  'quem_sou': 'quem-sou',
+  'meus_porques': 'meus-porques',
+  'meus_padroes': 'meus-padroes'
+} as const;
 
 // Tipo para o estado da store
 export type AutoconhecimentoState = {
-  notas: Nota[]
-  modoRefugio: boolean
+  abaSelecionada: 'quem-sou' | 'meus-porques' | 'meus-padroes'
+  notaSelecionadaId: string | null
+  editandoNota: boolean
+  criandoNota: boolean
+  buscarTermo: string
   // Ações
-  adicionarNota: (
-    titulo: string,
-    conteudo: string,
-    secao: 'quem-sou' | 'meus-porques' | 'meus-padroes',
-    tags?: string[],
-    imagemUrl?: string
-  ) => string
-  atualizarNota: (
-    id: string,
-    dados: Partial<Omit<Nota, 'id' | 'dataCriacao'>>
-  ) => void
-  removerNota: (id: string) => void
-  adicionarTag: (id: string, tag: string) => void
-  removerTag: (id: string, tag: string) => void
-  adicionarImagem: (id: string, imagemUrl: string) => void
-  removerImagem: (id: string) => void
-  alternarModoRefugio: () => void
-  buscarNotas: (termo: string) => Nota[]
+  selecionarAba: (aba: 'quem-sou' | 'meus-porques' | 'meus-padroes') => void
+  selecionarNota: (id: string | null) => void
+  iniciarCriacaoNota: () => void
+  cancelarCriacaoNota: () => void
+  iniciarEdicaoNota: () => void
+  cancelarEdicaoNota: () => void
+  definirBuscarTermo: (termo: string) => void
 }
 
 // Estado inicial
 const estadoInicial = {
-  notas: [],
-  modoRefugio: false
+  abaSelecionada: 'quem-sou' as const,
+  notaSelecionadaId: null,
+  editandoNota: false,
+  criandoNota: false,
+  buscarTermo: ''
 }
 
-// Criação da store com persistência
-export const useAutoconhecimentoStore = create<AutoconhecimentoState>()(
-  persist(
-    (set, get) => ({
-      ...estadoInicial,
-      
-      adicionarNota: (titulo, conteudo, secao, tags = [], imagemUrl) => {
-        const id = Date.now().toString()
-        const agora = new Date().toISOString()
-        
-        set((state) => ({
-          notas: [
-            ...state.notas,
-            {
-              id,
-              titulo,
-              conteudo,
-              secao,
-              tags,
-              dataCriacao: agora,
-              dataAtualizacao: agora,
-              imagemUrl
-            }
-          ]
-        }))
-        
-        return id
-      },
-      
-      atualizarNota: (id, dados) => set((state) => ({
-        notas: state.notas.map((nota) => 
-          nota.id === id 
-            ? { 
-                ...nota, 
-                ...dados, 
-                dataAtualizacao: new Date().toISOString() 
-              } 
-            : nota
-        )
-      })),
-      
-      removerNota: (id) => set((state) => ({
-        notas: state.notas.filter((nota) => nota.id !== id)
-      })),
-      
-      adicionarTag: (id, tag) => set((state) => ({
-        notas: state.notas.map((nota) => 
-          nota.id === id && !nota.tags.includes(tag)
-            ? { 
-                ...nota, 
-                tags: [...nota.tags, tag],
-                dataAtualizacao: new Date().toISOString() 
-              } 
-            : nota
-        )
-      })),
-      
-      removerTag: (id, tag) => set((state) => ({
-        notas: state.notas.map((nota) => 
-          nota.id === id
-            ? { 
-                ...nota, 
-                tags: nota.tags.filter((t) => t !== tag),
-                dataAtualizacao: new Date().toISOString() 
-              } 
-            : nota
-        )
-      })),
-      
-      adicionarImagem: (id, imagemUrl) => set((state) => ({
-        notas: state.notas.map((nota) => 
-          nota.id === id
-            ? { 
-                ...nota, 
-                imagemUrl,
-                dataAtualizacao: new Date().toISOString() 
-              } 
-            : nota
-        )
-      })),
-      
-      removerImagem: (id) => set((state) => ({
-        notas: state.notas.map((nota) => 
-          nota.id === id
-            ? { 
-                ...nota, 
-                imagemUrl: undefined,
-                dataAtualizacao: new Date().toISOString() 
-              } 
-            : nota
-        )
-      })),
-      
-      alternarModoRefugio: () => set((state) => ({
-        modoRefugio: !state.modoRefugio
-      })),
-      
-      buscarNotas: (termo) => {
-        const { notas } = get()
-        if (!termo.trim()) return notas
-        
-        const termoBusca = termo.toLowerCase()
-        return notas.filter((nota) => 
-          nota.titulo.toLowerCase().includes(termoBusca) ||
-          nota.conteudo.toLowerCase().includes(termoBusca) ||
-          nota.tags.some((tag) => tag.toLowerCase().includes(termoBusca))
-        )
-      }
-    }),
-    {
-      name: 'autoconhecimento-storage',
-    }
-  )
-)
+// Conversores entre tipos da UI e tipos do banco
+export const converterParaNota = (dbNota: NotaAutoconhecimento) => {
+  return {
+    id: dbNota.id,
+    titulo: dbNota.titulo,
+    conteudo: dbNota.conteudo,
+    secao: categoriaParaSecao[dbNota.categoria as keyof typeof categoriaParaSecao] as 'quem-sou' | 'meus-porques' | 'meus-padroes',
+    dataCriacao: dbNota.created_at || new Date().toISOString(),
+    dataAtualizacao: dbNota.updated_at || new Date().toISOString()
+  }
+}
+
+// Criação da store sem persistência (dados vêm do Supabase)
+export const useAutoconhecimentoStore = create<AutoconhecimentoState>()((set) => ({
+  ...estadoInicial,
+  
+  selecionarAba: (aba) => set({ abaSelecionada: aba }),
+  
+  selecionarNota: (id) => set({ 
+    notaSelecionadaId: id,
+    editandoNota: false,
+    criandoNota: false
+  }),
+  
+  iniciarCriacaoNota: () => set({ 
+    criandoNota: true, 
+    editandoNota: false,
+    notaSelecionadaId: null
+  }),
+  
+  cancelarCriacaoNota: () => set({ 
+    criandoNota: false
+  }),
+  
+  iniciarEdicaoNota: () => set({ 
+    editandoNota: true,
+    criandoNota: false
+  }),
+  
+  cancelarEdicaoNota: () => set({ 
+    editandoNota: false
+  }),
+  
+  definirBuscarTermo: (termo) => set({
+    buscarTermo: termo
+  })
+}))

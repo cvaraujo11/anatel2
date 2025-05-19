@@ -1,10 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { RefreshCw, Heart, ThumbsUp, ThumbsDown } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
-import { Badge } from '@/app/components/ui/Badge'
-import { useSugestoesStore } from '@/app/stores/sugestoesStore'
+import { useState } from 'react'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/app/components/ui/card"
+import { 
+  Coffee, 
+  Plus, 
+  Trash2, 
+  Heart, 
+  Star 
+} from "lucide-react"
+import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { useSugestoesDescanso, SugestaoDescanso } from '@/app/hooks/useSugestoesDescanso'
+import { cn } from '@/app/lib/utils'
+import { Skeleton } from '../ui/skeleton'
 
 // Lista de atividades de descanso por categoria
 const atividadesDescanso = {
@@ -51,146 +65,181 @@ const atividadesDescanso = {
 }
 
 export function SugestoesDescanso() {
-  const { sugestoesFavoritas, adicionarFavorita, removerFavorita } = useSugestoesStore()
-  const [sugestaoAtual, setSugestaoAtual] = useState('')
-  const [categoriaAtual, setCategoriaAtual] = useState<keyof typeof atividadesDescanso>('rapidas')
-  
-  // Função para gerar uma sugestão aleatória
-  const gerarSugestaoAleatoria = () => {
-    const categorias = Object.keys(atividadesDescanso) as Array<keyof typeof atividadesDescanso>
-    const categoriaAleatoria = categorias[Math.floor(Math.random() * categorias.length)]
+  const { 
+    sugestoes, 
+    isLoading, 
+    error, 
+    adicionarSugestao, 
+    removerSugestao, 
+    toggleFavorita 
+  } = useSugestoesDescanso();
+
+  const [novaSugestao, setNovaSugestao] = useState('');
+  const [enviando, setEnviando] = useState(false);
+
+  // Adicionar nova sugestão
+  const handleAdicionarSugestao = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const atividadesCategoria = atividadesDescanso[categoriaAleatoria]
-    const sugestaoAleatoria = atividadesCategoria[Math.floor(Math.random() * atividadesCategoria.length)]
+    if (!novaSugestao.trim()) return;
     
-    setSugestaoAtual(sugestaoAleatoria)
-    setCategoriaAtual(categoriaAleatoria)
-  }
-
-  // Gerar sugestão inicial ao montar o componente
-  useEffect(() => {
-    gerarSugestaoAleatoria()
-  }, [])
-
-  // Verificar se a sugestão atual está nos favoritos
-  const estaNasFavoritas = sugestoesFavoritas.includes(sugestaoAtual)
-
-  // Função para alternar favorito
-  const toggleFavorita = () => {
-    if (estaNasFavoritas) {
-      removerFavorita(sugestaoAtual)
-    } else {
-      adicionarFavorita(sugestaoAtual)
+    try {
+      setEnviando(true);
+      await adicionarSugestao(novaSugestao);
+      setNovaSugestao('');
+    } catch (err) {
+      console.error('Erro ao adicionar sugestão:', err);
+    } finally {
+      setEnviando(false);
     }
-  }
+  };
 
-  // Função para obter o nome exibido da categoria
-  const getNomeCategoria = (categoria: keyof typeof atividadesDescanso) => {
-    const nomes = {
-      rapidas: 'Rápidas',
-      criativas: 'Criativas',
-      físicas: 'Físicas',
-      relaxantes: 'Relaxantes'
+  // Alternar status de favorita
+  const handleToggleFavorita = async (id: string, favorita: boolean) => {
+    try {
+      await toggleFavorita(id, !favorita);
+    } catch (err) {
+      console.error('Erro ao marcar favorita:', err);
     }
-    return nomes[categoria]
-  }
+  };
 
-  // Função para obter a cor da categoria
-  const getCorCategoria = (categoria: keyof typeof atividadesDescanso) => {
-    const cores = {
-      rapidas: 'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-100',
-      criativas: 'bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-100',
-      físicas: 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100',
-      relaxantes: 'bg-amber-100 text-amber-800 dark:bg-amber-700 dark:text-amber-100'
+  // Remover sugestão
+  const handleRemoverSugestao = async (id: string) => {
+    try {
+      await removerSugestao(id);
+    } catch (err) {
+      console.error('Erro ao remover sugestão:', err);
     }
-    return cores[categoria]
-  }
+  };
+
+  // Organizar sugestões em favoritas e não favoritas
+  const sugestoesFavoritas = sugestoes.filter(s => s.favorita);
+  const sugestoesNormais = sugestoes.filter(s => !s.favorita);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <Button 
-          onClick={gerarSugestaoAleatoria}
-          size="sm"
-          aria-label="Gerar nova sugestão"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Nova Sugestão
-        </Button>
-      </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Coffee className="h-5 w-5" />
+          <span>Sugestões de Descanso</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Formulário para adicionar nova sugestão */}
+        <form onSubmit={handleAdicionarSugestao} className="flex gap-2 mb-4">
+          <Input
+            placeholder="Adicionar nova sugestão de descanso..."
+            value={novaSugestao}
+            onChange={(e) => setNovaSugestao(e.target.value)}
+            className="flex-1"
+            disabled={enviando || isLoading}
+          />
+          <Button type="submit" disabled={enviando || isLoading || !novaSugestao.trim()}>
+            <Plus className="h-4 w-4 mr-1" />
+            <span>Adicionar</span>
+          </Button>
+        </form>
 
-      {/* Sugestão atual */}
-      <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-6 text-center relative">
-        {sugestaoAtual && (
-          <>
-            <Badge 
-              className={`absolute top-3 left-3 ${getCorCategoria(categoriaAtual)}`}
-            >
-              {getNomeCategoria(categoriaAtual)}
-            </Badge>
-            
-            <p className="text-xl text-gray-900 dark:text-white font-medium mt-4">
-              {sugestaoAtual}
-            </p>
-            
-            <div className="flex justify-center mt-6 space-x-3">
-              <Button
-                variant={estaNasFavoritas ? "default" : "outline"}
-                size="sm"
-                onClick={toggleFavorita}
-                aria-label={estaNasFavoritas ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${estaNasFavoritas ? 'fill-white' : ''}`} />
-                {estaNasFavoritas ? 'Favorita' : 'Favoritar'}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={gerarSugestaoAleatoria}
-                aria-label="Próxima sugestão"
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" />
-                Próxima
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Sugestões Favoritas */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-          Sugestões Favoritas
-        </h3>
-        
-        {sugestoesFavoritas.length === 0 ? (
-          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-            <Heart className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Você ainda não tem sugestões favoritas.</p>
-            <p className="mt-1">Adicione suas favoritas para acessá-las facilmente.</p>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 p-4">
+            {error}
+          </div>
+        ) : sugestoes.length === 0 ? (
+          <div className="text-center text-muted-foreground p-4">
+            Nenhuma sugestão de descanso registrada. Adicione uma para começar!
           </div>
         ) : (
-          <div className="space-y-2">
-            {sugestoesFavoritas.map((sugestao, index) => (
-              <div 
-                key={index}
-                className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex justify-between items-center"
-              >
-                <p className="text-gray-700 dark:text-gray-300">{sugestao}</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removerFavorita(sugestao)}
-                  aria-label="Remover dos favoritos"
-                >
-                  <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                </Button>
+          <div className="space-y-4">
+            {/* Sugestões favoritas */}
+            {sugestoesFavoritas.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  <span>Favoritas</span>
+                </h3>
+                <ul className="space-y-2">
+                  {sugestoesFavoritas.map((sugestao) => (
+                    <SugestaoItem
+                      key={sugestao.id}
+                      sugestao={sugestao}
+                      onToggleFavorita={handleToggleFavorita}
+                      onRemover={handleRemoverSugestao}
+                    />
+                  ))}
+                </ul>
               </div>
-            ))}
+            )}
+
+            {/* Outras sugestões */}
+            {sugestoesNormais.length > 0 && (
+              <div className="space-y-2">
+                {sugestoesFavoritas.length > 0 && (
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Outras sugestões
+                  </h3>
+                )}
+                <ul className="space-y-2">
+                  {sugestoesNormais.map((sugestao) => (
+                    <SugestaoItem
+                      key={sugestao.id}
+                      sugestao={sugestao}
+                      onToggleFavorita={handleToggleFavorita}
+                      onRemover={handleRemoverSugestao}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Componente para cada item de sugestão
+function SugestaoItem({
+  sugestao,
+  onToggleFavorita,
+  onRemover
+}: {
+  sugestao: SugestaoDescanso;
+  onToggleFavorita: (id: string, favorita: boolean) => void;
+  onRemover: (id: string) => void;
+}) {
+  return (
+    <li className="flex items-center justify-between p-2 rounded-md bg-muted/40 hover:bg-muted transition-colors">
+      <span className="flex-1 ml-2">{sugestao.descricao}</span>
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onToggleFavorita(sugestao.id, sugestao.favorita)}
+          className={cn("h-8 w-8", sugestao.favorita && "text-yellow-500")}
+          title={sugestao.favorita ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+        >
+          <Heart className="h-4 w-4" fill={sugestao.favorita ? "currentColor" : "none"} />
+          <span className="sr-only">
+            {sugestao.favorita ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          </span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemover(sugestao.id)}
+          className="h-8 w-8 text-destructive/80 hover:text-destructive"
+          title="Excluir sugestão"
+        >
+          <Trash2 className="h-4 w-4" />
+          <span className="sr-only">Excluir</span>
+        </Button>
       </div>
-    </div>
-  )
+    </li>
+  );
 }

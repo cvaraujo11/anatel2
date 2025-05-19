@@ -1,20 +1,23 @@
 'use client'
 
 import { Droplet, PlusCircle, MinusCircle } from 'lucide-react'
-import { useAlimentacaoStore } from '@/app/stores/alimentacaoStore'
+import { useHidratacao } from '@/lib/hooks/useHidratacao'
 
 export function LembreteHidratacao() {
   const { 
-    coposBebidos, 
-    metaDiaria, 
-    ultimoRegistro, 
+    hidratacao: { coposBebidos, metaDiaria, ultimoRegistro },
+    loading,
     adicionarCopo, 
     removerCopo, 
-    ajustarMeta 
-  } = useAlimentacaoStore()
+    ajustarMeta
+  } = useHidratacao();
 
   // Calcular a porcentagem de progresso
   const progresso = Math.min((coposBebidos / metaDiaria) * 100, 100)
+
+  if (loading) {
+    return <div className="p-4 text-center">Carregando dados de hidratação...</div>
+  }
 
   return (
     <div className="space-y-4">
@@ -106,7 +109,7 @@ export function LembreteHidratacao() {
       </div>
 
       {/* Botões de ação */}
-      <div className="flex justify-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
         <button
           onClick={adicionarCopo}
           disabled={coposBebidos >= metaDiaria}

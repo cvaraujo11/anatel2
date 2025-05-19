@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useAutoconhecimentoStore } from '@/app/stores/autoconhecimentoStore'
+import { useNotasAutoconhecimento, NotaAutoconhecimento } from '@/app/hooks/useNotasAutoconhecimento'
+import { secaoParaCategoria } from '@/app/stores/autoconhecimentoStore'
+import { usePerfilStore } from '@/app/stores/perfilStore'
 import { Button } from '@/app/components/ui/Button'
 import { Textarea } from '@/app/components/ui/Textarea'
 import { Input } from '@/app/components/ui/Input'
@@ -11,20 +13,13 @@ import { X, Image as ImageIcon, Save } from 'lucide-react'
 type EditorNotasProps = {
   id?: string
   secaoAtual: 'quem-sou' | 'meus-porques' | 'meus-padroes'
+  notas: NotaAutoconhecimento[]
   onSave?: () => void
 }
 
-export function EditorNotas({ id, secaoAtual, onSave }: EditorNotasProps) {
-  const { 
-    notas, 
-    adicionarNota, 
-    atualizarNota, 
-    adicionarTag, 
-    removerTag,
-    adicionarImagem,
-    removerImagem,
-    modoRefugio
-  } = useAutoconhecimentoStore()
+export function EditorNotas({ id, secaoAtual, notas, onSave }: EditorNotasProps) {
+  const { adicionarNota, atualizarNota, adicionarTag, removerTag, adicionarImagem, removerImagem } = useNotasAutoconhecimento()
+  const { perfil } = usePerfilStore()
   
   const nota = id ? notas.find(n => n.id === id) : undefined
   
@@ -103,11 +98,11 @@ export function EditorNotas({ id, secaoAtual, onSave }: EditorNotasProps) {
   }
   
   // Função para salvar a nota
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (titulo.trim() && conteudo.trim()) {
       if (id) {
         // Atualizar nota existente
-        atualizarNota(id, {
+        await atualizarNota(id, {
           titulo,
           conteudo,
           tags,
@@ -115,13 +110,13 @@ export function EditorNotas({ id, secaoAtual, onSave }: EditorNotasProps) {
         })
       } else {
         // Criar nova nota
-        adicionarNota(
+        await adicionarNota({
           titulo,
           conteudo,
-          secaoAtual,
+          categoria: secaoParaCategoria[secaoAtual],
           tags,
           imagemUrl
-        )
+        })
       }
       
       if (onSave) {
@@ -131,6 +126,7 @@ export function EditorNotas({ id, secaoAtual, onSave }: EditorNotasProps) {
   }
   
   // Verifica se estamos no modo refúgio para simplificar a interface
+  const modoRefugio = perfil?.preferenciasVisuais?.modoRefugio || false
   const interfaceSimplificada = modoRefugio
   
   return (
@@ -269,18 +265,13 @@ export function EditorNotas({ id, secaoAtual, onSave }: EditorNotasProps) {
         </>
       )}
       
-      <div className="flex justify-end">
-        <Button 
+      <div className="flex justify-end space-x-3 mt-4">
+        <Button
           onClick={handleSalvar}
-          className={`flex items-center px-4 py-2 ${
-            interfaceSimplificada 
-              ? 'bg-autoconhecimento-primary text-white' 
-              : 'bg-autoconhecimento-primary text-white hover:bg-autoconhecimento-hover'
-          }`}
-          disabled={!titulo.trim() || !conteudo.trim()}
+          className="bg-autoconhecimento-primary text-white hover:bg-autoconhecimento-hover px-4 py-2 flex items-center"
           aria-label="Salvar nota"
         >
-          <Save size={16} className="mr-1" />
+          <Save size={18} className="mr-2" />
           <span>Salvar</span>
         </Button>
       </div>

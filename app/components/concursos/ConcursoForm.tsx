@@ -6,14 +6,18 @@ import { Input } from '@/app/components/ui/Input';
 import { Modal } from '@/app/components/ui/Modal';
 import { Calendar, Plus, X } from 'lucide-react';
 import { useConcursosStore, type Concurso } from '@/app/stores/concursosStore';
+import { Concurso as ConcursoHook } from '@/app/hooks/useConcursos';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface ConcursoFormProps {
   isOpen: boolean;
   onClose: () => void;
-  concursoParaEditar?: Concurso;
+  onSave: (concurso: Omit<ConcursoHook, 'id' | 'created_at' | 'updated_at'>) => void;
+  concursoParaEditar?: ConcursoHook;
 }
 
-export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFormProps) {
+export function ConcursoForm({ isOpen, onClose, onSave, concursoParaEditar }: ConcursoFormProps) {
   const { adicionarConcurso, atualizarConcurso } = useConcursosStore();
   const [formData, setFormData] = useState({
     titulo: concursoParaEditar?.titulo || '',
@@ -31,17 +35,34 @@ export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFo
   const [loadingExtracao, setLoadingExtracao] = useState(false);
   const [extracaoErro, setExtracaoErro] = useState<string | null>(null);
   const [extracaoSucesso, setExtracaoSucesso] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (concursoParaEditar) {
-      atualizarConcurso(concursoParaEditar.id, formData);
-    } else {
-      adicionarConcurso(formData);
+    if (!formData.titulo.trim()) {
+      setErro('O título do concurso é obrigatório');
+      return;
     }
     
-    onClose();
+    try {
+      setEnviando(true);
+      setErro('');
+      
+      await onSave({
+        titulo: formData.titulo,
+        organizadora: formData.organizadora,
+        status: formData.status,
+        data_prova: formData.dataProva?.toISOString()
+      });
+      
+      onClose();
+    } catch (error: any) {
+      setErro(error.message || 'Erro ao salvar concurso');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const adicionarDisciplina = () => {
@@ -104,6 +125,12 @@ export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFo
       title={concursoParaEditar ? "Editar Concurso" : "Novo Concurso"}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {erro && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {erro}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium mb-1">
             Título
@@ -145,11 +172,13 @@ export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFo
             <label className="block text-sm font-medium mb-1">
               Data da Prova
             </label>
-            <Input
-              type="date"
-              value={formData.dataProva}
-              onChange={e => setFormData(prev => ({ ...prev, dataProva: e.target.value }))}
-              required
+            <DatePicker
+              selected={formData.dataProva ? new Date(formData.dataProva) : null}
+              onChange={(date: Date) => setFormData(prev => ({ ...prev, dataProva: date.toISOString().split('T')[0] }))}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholderText="Selecione uma data"
+              dateFormat="dd/MM/yyyy"
+              isClearable
             />
           </div>
         </div>
@@ -228,7 +257,7 @@ export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFo
           </label>
           <select
             value={formData.status}
-            onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as Concurso['status'] }))}
+            onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as ConcursoHook['status'] }))}
             className="w-full border rounded-md p-2"
           >
             <option value="planejado">Planejado</option>
@@ -312,11 +341,11 @@ export function ConcursoForm({ isOpen, onClose, concursoParaEditar }: ConcursoFo
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose} disabled={enviando}>
             Cancelar
           </Button>
-          <Button type="submit">
-            {concursoParaEditar ? 'Salvar Alterações' : 'Adicionar Concurso'}
+          <Button type="submit" disabled={enviando}>
+            {enviando ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </form>

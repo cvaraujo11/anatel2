@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Anchor, PenSquare, X } from 'lucide-react'
 import { EditorNotas } from '../components/autoconhecimento/EditorNotas'
 import { ListaNotas } from '../components/autoconhecimento/ListaNotas'
@@ -8,14 +8,38 @@ import { ModoRefugio } from '../components/autoconhecimento/ModoRefugio'
 import { Button } from '../components/ui/Button'
 import { Container } from '../components/ui/Container'
 import { Section } from '../components/ui/Section'
-import { useAutoconhecimentoStore } from '../stores/autoconhecimentoStore'
+import { useAutoconhecimentoStore, secaoParaCategoria } from '../stores/autoconhecimentoStore'
+import { useNotasAutoconhecimento } from '../hooks/useNotasAutoconhecimento'
+import { usePerfilStore } from '../stores/perfilStore'
 
 export default function AutoconhecimentoPage() {
-  const [abaSelecionada, setAbaSelecionada] = useState<'quem-sou' | 'meus-porques' | 'meus-padroes'>('quem-sou')
-  const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null)
-  const [criandoNota, setCriandoNota] = useState(false)
+  const { 
+    abaSelecionada, 
+    selecionarAba, 
+    notaSelecionadaId, 
+    selecionarNota, 
+    criandoNota, 
+    iniciarCriacaoNota, 
+    cancelarCriacaoNota
+  } = useAutoconhecimentoStore()
   
-  const { modoRefugio } = useAutoconhecimentoStore()
+  const { perfil } = usePerfilStore()
+  const { notas, isLoading, fetchNotasPorCategoria } = useNotasAutoconhecimento()
+  const [notasSecaoAtual, setNotasSecaoAtual] = useState([])
+  
+  // Usar o modo refúgio do perfil ao invés do autoconhecimentoStore
+  const modoRefugio = perfil?.preferenciasVisuais?.modoRefugio || false
+  
+  // Carregar notas da seção atual
+  useEffect(() => {
+    const carregarNotas = async () => {
+      const categoria = secaoParaCategoria[abaSelecionada]
+      const notasDaCategoria = await fetchNotasPorCategoria(categoria)
+      setNotasSecaoAtual(notasDaCategoria)
+    }
+    
+    carregarNotas()
+  }, [abaSelecionada, fetchNotasPorCategoria])
   
   // Mapeamento de títulos para exibição
   const tituloAbas = {
@@ -33,26 +57,33 @@ export default function AutoconhecimentoPage() {
   
   // Função para selecionar uma nota
   const handleSelecionarNota = (id: string) => {
-    setNotaSelecionada(id)
-    setCriandoNota(false)
+    selecionarNota(id)
   }
   
   // Função para iniciar criação de nova nota
   const handleCriarNota = () => {
-    setNotaSelecionada(null)
-    setCriandoNota(true)
+    iniciarCriacaoNota()
   }
   
   // Função para cancelar edição/criação
   const handleCancelar = () => {
-    setNotaSelecionada(null)
-    setCriandoNota(false)
+    cancelarCriacaoNota()
+    selecionarNota(null)
   }
   
   // Função após salvar uma nota
   const handleSalvarNota = () => {
-    setNotaSelecionada(null)
-    setCriandoNota(false)
+    cancelarCriacaoNota()
+    selecionarNota(null)
+    
+    // Recarregar notas da seção atual
+    const carregarNotas = async () => {
+      const categoria = secaoParaCategoria[abaSelecionada]
+      const notasDaCategoria = await fetchNotasPorCategoria(categoria)
+      setNotasSecaoAtual(notasDaCategoria)
+    }
+    
+    carregarNotas()
   }
   
   // Verifica se estamos no modo refúgio para simplificar a interface
@@ -77,9 +108,9 @@ export default function AutoconhecimentoPage() {
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
             onClick={() => {
-              setAbaSelecionada(aba)
-              setNotaSelecionada(null)
-              setCriandoNota(false)
+              selecionarAba(aba)
+              selecionarNota(null)
+              cancelarCriacaoNota()
             }}
             aria-current={abaSelecionada === aba ? 'page' : undefined}
           >
@@ -89,7 +120,7 @@ export default function AutoconhecimentoPage() {
       </div>
       
       {/* Descrição da seção atual */}
-      {!interfaceSimplificada && !notaSelecionada && !criandoNota && (
+      {!interfaceSimplificada && !notaSelecionadaId && !criandoNota && (
         <div className="mb-6 bg-autoconhecimento-light bg-opacity-60 dark:bg-gray-700 p-4 rounded-lg">
           <h2 className="text-lg font-medium text-autoconhecimento-primary mb-2">{tituloAbas[abaSelecionada]}</h2>
           <p className="text-gray-700 dark:text-gray-300">{descricaoAbas[abaSelecionada]}</p>
@@ -101,58 +132,66 @@ export default function AutoconhecimentoPage() {
         title={tituloAbas[abaSelecionada]} 
         className={`${interfaceSimplificada ? 'bg-opacity-90' : ''} transition-opacity duration-300`}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Área de lista de notas */}
-          <div className={notaSelecionada || criandoNota ? 'hidden lg:block' : 'block'}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                Suas notas em {tituloAbas[abaSelecionada]}
-              </h3>
-              
-              {!interfaceSimplificada && (
-                <Button
-                  onClick={handleCriarNota}
-                  className="flex items-center text-sm bg-autoconhecimento-primary text-white hover:bg-autoconhecimento-hover transition-colors"
-                  aria-label="Criar nova nota"
-                >
-                  <PenSquare size={16} className="mr-1" />
-                  <span>Nova nota</span>
-                </Button>
-              )}
-            </div>
-            
-            <ListaNotas 
-              secaoAtual={abaSelecionada}
-              onSelectNota={handleSelecionarNota}
-            />
+        {isLoading ? (
+          <div className="flex justify-center items-center p-12">
+            <p className="text-gray-500">Carregando suas notas...</p>
           </div>
-          
-          {/* Área de edição/visualização */}
-          {(notaSelecionada || criandoNota) && (
-            <div className="lg:col-span-1">
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Área de lista de notas */}
+            <div className={notaSelecionadaId || criandoNota ? 'hidden lg:block' : 'block'}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                  {criandoNota ? 'Nova nota' : 'Editar nota'}
+                  Suas notas em {tituloAbas[abaSelecionada]}
                 </h3>
                 
-                <Button
-                  onClick={handleCancelar}
-                  className="flex items-center text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                  aria-label="Cancelar edição"
-                >
-                  <X size={16} className="mr-1" />
-                  <span>Cancelar</span>
-                </Button>
+                {!interfaceSimplificada && (
+                  <Button
+                    onClick={handleCriarNota}
+                    className="flex items-center text-sm bg-autoconhecimento-primary text-white hover:bg-autoconhecimento-hover transition-colors"
+                    aria-label="Criar nova nota"
+                  >
+                    <PenSquare size={16} className="mr-1" />
+                    <span>Nova nota</span>
+                  </Button>
+                )}
               </div>
               
-              <EditorNotas
-                id={notaSelecionada || undefined}
+              <ListaNotas 
                 secaoAtual={abaSelecionada}
-                onSave={handleSalvarNota}
+                notas={notasSecaoAtual}
+                onSelectNota={handleSelecionarNota}
               />
             </div>
-          )}
-        </div>
+            
+            {/* Área de edição/visualização */}
+            {(notaSelecionadaId || criandoNota) && (
+              <div className="lg:col-span-1">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                    {criandoNota ? 'Nova nota' : 'Editar nota'}
+                  </h3>
+                  
+                  <Button
+                    onClick={handleCancelar}
+                    className="flex items-center text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    aria-label="Cancelar edição"
+                  >
+                    <X size={16} className="mr-1" />
+                    <span>Cancelar</span>
+                  </Button>
+                </div>
+                
+                <EditorNotas
+                  id={notaSelecionadaId || undefined}
+                  secaoAtual={abaSelecionada}
+                  notas={notasSecaoAtual}
+                  onSave={handleSalvarNota}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </Section>
       
       {/* Botão flutuante para Modo Refúgio */}

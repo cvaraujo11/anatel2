@@ -1,299 +1,269 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Plus, Trash, Clock, Calendar, Bookmark } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
-import { Input } from '@/app/components/ui/Input'
-import { Textarea } from '@/app/components/ui/Textarea'
-import { Badge } from '@/app/components/ui/Badge'
-import { Select } from '@/app/components/ui/Select'
-import { StatCard } from '@/app/components/ui/StatCard'
-import { Alert } from '@/app/components/ui/Alert'
-import { useAtividadesStore } from '@/app/stores/atividadesStore'
+import { useState } from 'react'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/app/components/ui/card"
+import { 
+  BookOpen, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Clock, 
+  Tag 
+} from "lucide-react"
+import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/app/components/ui/dialog"
+import { Label } from "@/app/components/ui/label"
+import { useAtividadesLazer, AtividadeLazer } from '@/app/hooks/useAtividadesLazer'
+import { Badge } from '../ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Skeleton } from '../ui/skeleton'
 
-type Atividade = {
-  id: string
-  nome: string
-  categoria: string
-  duracao: number // em minutos
-  observacoes: string
-  data: string
-  concluida: boolean
-}
+// Categorias de atividades de lazer
+const CATEGORIAS = [
+  'Leitura',
+  'Exercício',
+  'Arte',
+  'Música',
+  'Meditação',
+  'Jogos',
+  'Social',
+  'Natureza',
+  'Culinária',
+  'Outros'
+]
 
 export function AtividadesLazer() {
-  const { atividades, adicionarAtividade, removerAtividade, marcarConcluida } = useAtividadesStore()
-  
-  const [novaAtividade, setNovaAtividade] = useState<Omit<Atividade, 'id' | 'concluida'>>({
-    nome: '',
-    categoria: 'Criativa',
-    duracao: 30,
-    observacoes: '',
-    data: new Date().toISOString().split('T')[0]
-  })
+  const { 
+    atividades, 
+    isLoading, 
+    error, 
+    adicionarAtividade, 
+    removerAtividade, 
+    atualizarAtividade 
+  } = useAtividadesLazer()
 
-  const [erro, setErro] = useState('')
-  const [showForm, setShowForm] = useState(false)
+  const [dialogAberto, setDialogAberto] = useState(false)
+  const [modoEdicao, setModoEdicao] = useState(false)
+  const [atividadeAtual, setAtividadeAtual] = useState<AtividadeLazer | null>(null)
+  const [nome, setNome] = useState('')
+  const [categoria, setCategoria] = useState<string>('')
+  const [duracao, setDuracao] = useState<number | ''>('')
 
-  // Categorias de atividades de lazer
-  const categorias = [
-    { value: 'Criativa', label: 'Criativa' },
-    { value: 'Física', label: 'Física' },
-    { value: 'Social', label: 'Social' },
-    { value: 'Relaxante', label: 'Relaxante' },
-    { value: 'Intelectual', label: 'Intelectual' },
-    { value: 'Outra', label: 'Outra' }
-  ]
+  // Resetar o formulário
+  const resetarFormulario = () => {
+    setNome('')
+    setCategoria('')
+    setDuracao('')
+    setAtividadeAtual(null)
+    setModoEdicao(false)
+  }
 
-  // Estatísticas
-  const estatisticas = useMemo(() => {
-    const atividadesConcluidas = atividades.filter(a => a.concluida).length
-    const totalMinutosLazer = atividades
-      .filter(a => a.concluida)
-      .reduce((acc, curr) => acc + curr.duracao, 0)
-    
-    // Categoria mais comum
-    const contagem = atividades
-      .filter(a => a.concluida)
-      .reduce((acc, curr) => {
-        acc[curr.categoria] = (acc[curr.categoria] || 0) + 1
-        return acc
-      }, {} as Record<string, number>)
-    
-    const categoriaMaisComum = Object.entries(contagem).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
-    
-    return {
-      atividadesConcluidas,
-      totalMinutosLazer,
-      categoriaMaisComum
+  // Abrir diálogo para adicionar nova atividade
+  const abrirDialogAdicionar = () => {
+    resetarFormulario()
+    setDialogAberto(true)
+  }
+
+  // Abrir diálogo para editar atividade existente
+  const abrirDialogEditar = (atividade: AtividadeLazer) => {
+    setAtividadeAtual(atividade)
+    setNome(atividade.nome)
+    setCategoria(atividade.categoria || '')
+    setDuracao(atividade.duracao_minutos || '')
+    setModoEdicao(true)
+    setDialogAberto(true)
+  }
+
+  // Salvar atividade (nova ou editada)
+  const salvarAtividade = async () => {
+    if (!nome.trim()) return
+
+    try {
+      if (modoEdicao && atividadeAtual) {
+        await atualizarAtividade(atividadeAtual.id, {
+          nome,
+          categoria: categoria || null,
+          duracao_minutos: duracao === '' ? null : Number(duracao)
+        })
+      } else {
+        await adicionarAtividade({
+          nome,
+          categoria: categoria || null,
+          duracao_minutos: duracao === '' ? null : Number(duracao)
+        })
+      }
+      
+      setDialogAberto(false)
+      resetarFormulario()
+    } catch (err) {
+      console.error('Erro ao salvar atividade:', err)
     }
-  }, [atividades])
+  }
 
-  // Handler para adicionar atividade
-  const handleAdicionarAtividade = () => {
-    if (!novaAtividade.nome.trim()) {
-      setErro('O nome da atividade é obrigatório')
-      return
+  // Excluir atividade
+  const excluirAtividade = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+      try {
+        await removerAtividade(id)
+      } catch (err) {
+        console.error('Erro ao excluir atividade:', err)
+      }
     }
-    
-    adicionarAtividade({
-      ...novaAtividade,
-      id: crypto.randomUUID(),
-      concluida: false
-    })
-    
-    // Resetar o formulário
-    setNovaAtividade({
-      nome: '',
-      categoria: 'Criativa',
-      duracao: 30,
-      observacoes: '',
-      data: new Date().toISOString().split('T')[0]
-    })
-    
-    setErro('')
-    setShowForm(false)
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <Button 
-          onClick={() => setShowForm(!showForm)}
-          aria-label={showForm ? "Cancelar adição" : "Adicionar nova atividade de lazer"}
-        >
-          {showForm ? 'Cancelar' : 'Nova Atividade'}
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5" />
+          <span>Atividades de Lazer</span>
+        </CardTitle>
+        <Button onClick={abrirDialogAdicionar} size="sm" className="h-8">
+          <Plus className="h-4 w-4 mr-1" />
+          <span className="sr-only sm:not-sr-only">Adicionar</span>
         </Button>
-      </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 p-4">
+            {error}
+          </div>
+        ) : atividades.length === 0 ? (
+          <div className="text-center text-muted-foreground p-4">
+            Nenhuma atividade de lazer registrada. Adicione uma para começar!
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {atividades.map((atividade) => (
+              <li 
+                key={atividade.id} 
+                className="flex items-center justify-between p-3 bg-muted/40 rounded-lg"
+              >
+                <div className="flex-1 mr-4">
+                  <h4 className="font-medium">{atividade.nome}</h4>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {atividade.categoria && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Tag className="h-3 w-3" />
+                        {atividade.categoria}
+                      </Badge>
+                    )}
+                    {atividade.duracao_minutos && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {atividade.duracao_minutos} min
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => abrirDialogEditar(atividade)}
+                    className="h-8 w-8"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span className="sr-only">Editar</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => excluirAtividade(atividade.id)}
+                    className="h-8 w-8 text-destructive/80 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Excluir</span>
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard
-          title="Atividades Realizadas"
-          value={estatisticas.atividadesConcluidas.toString()}
-          icon={<Bookmark className="h-5 w-5" />}
-          description="Total concluído"
-        />
-        
-        <StatCard
-          title="Tempo de Lazer"
-          value={`${Math.floor(estatisticas.totalMinutosLazer / 60)}h ${estatisticas.totalMinutosLazer % 60}m`}
-          icon={<Clock className="h-5 w-5" />}
-          description="Tempo acumulado"
-        />
-        
-        <StatCard
-          title="Categoria Favorita"
-          value={estatisticas.categoriaMaisComum}
-          icon={<Bookmark className="h-5 w-5" />}
-          description="Mais frequente"
-        />
-      </div>
-
-      {/* Formulário para adicionar nova atividade */}
-      {showForm && (
-        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-            Nova Atividade de Lazer
-          </h3>
-          
-          {erro && <Alert variant="error" className="mb-3">{erro}</Alert>}
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nome da atividade
-              </label>
-              <Input
-                id="nome"
-                value={novaAtividade.nome}
-                onChange={e => setNovaAtividade({...novaAtividade, nome: e.target.value})}
-                placeholder="Ex: Ler um livro"
-                aria-required="true"
-              />
-            </div>
+        {/* Diálogo para adicionar/editar atividade */}
+        <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {modoEdicao ? 'Editar Atividade' : 'Nova Atividade de Lazer'}
+              </DialogTitle>
+            </DialogHeader>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="categoria" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Categoria
-                </label>
-                <Select
-                  id="categoria"
-                  value={novaAtividade.categoria}
-                  onChange={e => setNovaAtividade({...novaAtividade, categoria: e.target.value})}
-                  options={categorias}
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome da Atividade</Label>
+                <Input
+                  id="nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Ex: Leitura, Caminhada, Pintura..."
                 />
               </div>
               
-              <div>
-                <label htmlFor="duracao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Duração (minutos)
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="categoria">Categoria</Label>
+                <Select 
+                  value={categoria} 
+                  onValueChange={setCategoria}
+                >
+                  <SelectTrigger id="categoria">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIAS.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="duracao">Duração (minutos)</Label>
                 <Input
                   id="duracao"
                   type="number"
-                  min="5"
-                  max="240"
-                  value={novaAtividade.duracao}
-                  onChange={e => setNovaAtividade({...novaAtividade, duracao: parseInt(e.target.value) || 30})}
+                  min="1"
+                  max="1440"
+                  value={duracao}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setDuracao(val === '' ? '' : parseInt(val))
+                  }}
+                  placeholder="Opcional"
                 />
               </div>
             </div>
             
-            <div>
-              <label htmlFor="data" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Data
-              </label>
-              <Input
-                id="data"
-                type="date"
-                value={novaAtividade.data}
-                onChange={e => setNovaAtividade({...novaAtividade, data: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="observacoes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Observações (opcional)
-              </label>
-              <Textarea
-                id="observacoes"
-                value={novaAtividade.observacoes}
-                onChange={e => setNovaAtividade({...novaAtividade, observacoes: e.target.value})}
-                placeholder="Detalhes adicionais sobre a atividade..."
-              />
-            </div>
-            
-            <Button onClick={handleAdicionarAtividade} className="w-full">
-              Adicionar Atividade
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Lista de atividades */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-          Suas Atividades
-        </h3>
-        
-        {atividades.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Você ainda não tem nenhuma atividade de lazer registrada.</p>
-            <p className="mt-1">Adicione uma atividade para começar a acompanhar.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {atividades.map(atividade => (
-              <div 
-                key={atividade.id}
-                className={`p-4 rounded-lg border ${
-                  atividade.concluida 
-                    ? 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700' 
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center">
-                      <h4 className={`font-medium ${
-                        atividade.concluida 
-                          ? 'text-gray-500 dark:text-gray-400' 
-                          : 'text-gray-900 dark:text-white'
-                      }`}>
-                        {atividade.nome}
-                      </h4>
-                      <Badge className="ml-2" variant={atividade.concluida ? "secondary" : "default"}>
-                        {atividade.categoria}
-                      </Badge>
-                    </div>
-                    
-                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-3">
-                      <span className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {atividade.duracao} min
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(atividade.data).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
-                    
-                    {atividade.observacoes && (
-                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                        {atividade.observacoes}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    {!atividade.concluida && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => marcarConcluida(atividade.id)}
-                        aria-label="Marcar como concluída"
-                      >
-                        Concluir
-                      </Button>
-                    )}
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => removerAtividade(atividade.id)}
-                      aria-label="Remover atividade"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogAberto(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={salvarAtividade}>
+                {modoEdicao ? 'Salvar Alterações' : 'Adicionar Atividade'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,38 +1,41 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useAutoconhecimentoStore } from '@/app/stores/autoconhecimentoStore'
+import { useNotasAutoconhecimento, NotaAutoconhecimento } from '@/app/hooks/useNotasAutoconhecimento'
+import { usePerfilStore } from '@/app/stores/perfilStore'
 import { Card } from '@/app/components/ui/Card'
 import { Badge } from '@/app/components/ui/Badge'
 import { Input } from '@/app/components/ui/Input'
-import { Search, Edit, Trash2, Image as ImageIcon } from 'lucide-react'
+import { Search, Edit, Trash2 } from 'lucide-react'
 
 type ListaNotasProps = {
   secaoAtual: 'quem-sou' | 'meus-porques' | 'meus-padroes'
+  notas: NotaAutoconhecimento[]
   onSelectNota: (id: string) => void
 }
 
-export function ListaNotas({ secaoAtual, onSelectNota }: ListaNotasProps) {
-  const { notas, removerNota, buscarNotas, modoRefugio } = useAutoconhecimentoStore()
+export function ListaNotas({ secaoAtual, notas, onSelectNota }: ListaNotasProps) {
+  const { excluirNota } = useNotasAutoconhecimento()
+  const { perfil } = usePerfilStore()
   const [termoBusca, setTermoBusca] = useState('')
   
-  // Filtrar notas da seção atual
-  const notasSecao = useMemo(() => {
-    const notasFiltradas = termoBusca 
-      ? buscarNotas(termoBusca) 
-      : notas
+  // Filtrar notas pelo termo de busca
+  const notasFiltradas = useMemo(() => {
+    if (!termoBusca.trim()) return notas;
     
-    return notasFiltradas
-      .filter(nota => nota.secao === secaoAtual)
-      .sort((a, b) => new Date(b.dataAtualizacao).getTime() - new Date(a.dataAtualizacao).getTime())
-  }, [notas, secaoAtual, termoBusca, buscarNotas])
+    const termo = termoBusca.toLowerCase();
+    return notas.filter(nota => 
+      nota.titulo.toLowerCase().includes(termo) || 
+      nota.conteudo.toLowerCase().includes(termo)
+    );
+  }, [notas, termoBusca]);
   
   // Função para lidar com a exclusão
-  const handleRemoverNota = (id: string, e: React.MouseEvent) => {
+  const handleRemoverNota = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     
     if (window.confirm('Tem certeza que deseja excluir esta nota?')) {
-      removerNota(id)
+      await excluirNota(id)
     }
   }
   
@@ -47,6 +50,7 @@ export function ListaNotas({ secaoAtual, onSelectNota }: ListaNotasProps) {
   }
   
   // Verifica se estamos no modo refúgio para simplificar a interface
+  const modoRefugio = perfil?.preferenciasVisuais?.modoRefugio || false
   const interfaceSimplificada = modoRefugio
   
   return (
@@ -66,14 +70,14 @@ export function ListaNotas({ secaoAtual, onSelectNota }: ListaNotasProps) {
       
       {/* Lista de notas */}
       <div className="space-y-3">
-        {notasSecao.length === 0 ? (
+        {notasFiltradas.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400 py-4">
             {termoBusca 
               ? 'Nenhuma nota encontrada para esta busca' 
               : 'Nenhuma nota registrada nesta seção ainda'}
           </p>
         ) : (
-          notasSecao.map((nota) => (
+          notasFiltradas.map((nota) => (
             <Card
               key={nota.id}
               className={`${
@@ -118,27 +122,8 @@ export function ListaNotas({ secaoAtual, onSelectNota }: ListaNotasProps) {
                   {nota.conteudo}
                 </p>
                 
-                {!interfaceSimplificada && nota.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {nota.tags.map((tag) => (
-                      <Badge 
-                        key={tag}
-                        className="bg-autoconhecimento-light text-autoconhecimento-primary px-2 py-0.5 text-xs"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                
                 <div className="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                  <span>Atualizado em {formatarData(nota.dataAtualizacao)}</span>
-                  {nota.imagemUrl && (
-                    <span className="flex items-center">
-                      <ImageIcon size={12} className="mr-1" />
-                      <span>Âncora visual</span>
-                    </span>
-                  )}
+                  <span>Atualizado em {formatarData(nota.updated_at || '')}</span>
                 </div>
               </div>
             </Card>

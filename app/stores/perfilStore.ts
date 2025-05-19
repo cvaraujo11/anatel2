@@ -5,6 +5,7 @@ export type PreferenciasVisuais = {
   altoContraste: boolean
   reducaoEstimulos: boolean
   textoGrande: boolean
+  modoRefugio: boolean
 }
 
 export type MetasDiarias = {
@@ -34,7 +35,8 @@ const defaultState = {
   preferenciasVisuais: {
     altoContraste: false,
     reducaoEstimulos: false,
-    textoGrande: false
+    textoGrande: false,
+    modoRefugio: false
   },
   metasDiarias: {
     horasSono: 8,

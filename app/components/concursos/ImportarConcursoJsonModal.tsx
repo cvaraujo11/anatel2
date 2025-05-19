@@ -1,118 +1,137 @@
-import React, { useState } from "react";
-import { Modal } from "../ui/Modal";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+'use client';
 
-interface ImportarConcursoJsonModalProps {
-  isOpen: boolean;
+import { useState } from 'react';
+import { Upload, X } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+
+type ImportarConcursoJsonModalProps = {
   onClose: () => void;
   onImport: (concurso: any) => void;
-}
+};
 
-const TEMPLATE = `{
-  "titulo": "",
-  "organizadora": "",
-  "dataInscricao": "",
-  "dataProva": "",
-  "linkEdital": "",
-  "conteudoProgramatico": [
-    {
-      "disciplina": "",
-      "topicos": ["", ""]
-    }
-  ]
-}`;
+export default function ImportarConcursoJsonModal({ 
+  onClose, 
+  onImport 
+}: ImportarConcursoJsonModalProps) {
+  const [json, setJson] = useState('');
+  const [jsonFile, setJsonFile] = useState<File | null>(null);
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(false);
 
-function validarConcursoJson(json: any): string | null {
-  if (typeof json !== "object" || !json) return "JSON inválido.";
-  if (!json.titulo || !json.organizadora || !json.dataInscricao || !json.dataProva) return "Campos obrigatórios ausentes.";
-  if (!Array.isArray(json.conteudoProgramatico) || json.conteudoProgramatico.length === 0) return "Conteúdo programático ausente.";
-  for (const d of json.conteudoProgramatico) {
-    if (!d.disciplina || !Array.isArray(d.topicos)) return "Disciplina ou tópicos inválidos.";
-  }
-  return null;
-}
-
-export function ImportarConcursoJsonModal({ isOpen, onClose, onImport }: ImportarConcursoJsonModalProps) {
-  const [jsonText, setJsonText] = useState("");
-  const [erro, setErro] = useState<string | null>(null);
-  const [sucesso, setSucesso] = useState<string | null>(null);
-
-  function parseDateBRtoISO(dateStr: string): string | null {
-    // Aceita "dd/MM/yyyy" ou "dd/MM/yyyy a dd/MM/yyyy"
-    if (!dateStr) return null;
-    const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-    if (!match) return null;
-    const [_, d, m, y] = match;
-    return `${y}-${m}-${d}`;
-  }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    setJsonFile(file);
+    
+    // Ler o conteúdo do arquivo
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setJson(e.target.result as string);
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleImport = () => {
-    setErro(null);
-    setSucesso(null);
-    let parsed;
     try {
-      parsed = JSON.parse(jsonText);
-    } catch {
-      setErro("JSON mal formatado.");
-      return;
-    }
-    const valid = validarConcursoJson(parsed);
-    if (valid) {
-      setErro(valid);
-      return;
-    }
-    // Corrigir datas para formato ISO
-    const dataProvaISO = parseDateBRtoISO(parsed.dataProva);
-    if (!dataProvaISO) {
-      setErro("Data da prova inválida. Use formato dd/MM/yyyy.");
-      return;
-    }
-    let dataInscricaoISO = parseDateBRtoISO(parsed.dataInscricao);
-    if (!dataInscricaoISO) {
-      // Tentar extrair data inicial de intervalo
-      const partes = parsed.dataInscricao.split(" a ");
-      dataInscricaoISO = parseDateBRtoISO(partes[0]);
-      if (!dataInscricaoISO) {
-        setErro("Data de inscrição inválida. Use formato dd/MM/yyyy ou intervalo.");
+      setCarregando(true);
+      setErro('');
+      
+      // Validar se o JSON é válido
+      if (!json.trim()) {
+        setErro('Por favor, insira ou faça upload de um arquivo JSON válido');
         return;
       }
+      
+      // Converter o JSON para objeto
+      const concursoData = JSON.parse(json);
+      
+      // Validar campos obrigatórios mínimos
+      if (!concursoData.titulo) {
+        setErro('O JSON deve conter pelo menos o campo "titulo"');
+        return;
+      }
+      
+      // Chamar a função de importação
+      onImport(concursoData);
+    } catch (error: any) {
+      setErro(`Erro ao processar o JSON: ${error.message}`);
+    } finally {
+      setCarregando(false);
     }
-    const concursoCorrigido = {
-      ...parsed,
-      dataProva: dataProvaISO,
-      dataInscricao: dataInscricaoISO,
-    };
-    setSucesso("Concurso importado com sucesso!");
-    onImport(concursoCorrigido);
-    setTimeout(() => {
-      setSucesso(null);
-      onClose();
-    }, 1000);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Importar JSON do Edital">
-      <div className="space-y-3">
-        <p>Cole abaixo o JSON extraído da LLM externa (Claude, ChatGPT, etc.).</p>
-        <textarea
-          className="w-full border rounded p-2 font-mono text-sm"
-          rows={10}
-          value={jsonText}
-          onChange={e => setJsonText(e.target.value)}
-          placeholder={TEMPLATE}
-        />
-        <div>
-          <Button onClick={handleImport}>Importar</Button>
-          <Button variant="outline" onClick={onClose} className="ml-2">Cancelar</Button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Importar Concurso via JSON</h2>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={24} />
+          </button>
         </div>
-        {erro && <div className="text-red-600 text-sm">{erro}</div>}
-        {sucesso && <div className="text-green-600 text-sm">{sucesso}</div>}
-        <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-gray-500">Ver template de exemplo</summary>
-          <pre className="bg-gray-100 p-2 rounded text-xs">{TEMPLATE}</pre>
-        </details>
+
+        {erro && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {erro}
+          </div>
+        )}
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">
+            Faça upload de um arquivo JSON com os dados do concurso ou cole o conteúdo diretamente no campo abaixo.
+          </p>
+          
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center mb-4">
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleFileChange}
+              className="hidden"
+              id="json-file-input"
+            />
+            <label htmlFor="json-file-input" className="cursor-pointer">
+              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <span className="mt-2 block text-sm font-medium text-gray-700">
+                {jsonFile ? jsonFile.name : 'Clique para selecionar um arquivo JSON'}
+              </span>
+            </label>
+          </div>
+          
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Conteúdo JSON
+          </label>
+          <textarea
+            value={json}
+            onChange={(e) => setJson(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-40"
+            placeholder='{"titulo": "Concurso INSS", "organizadora": "CESPE", "data_prova": "2023-12-25", "conteudoProgramatico": [{"descricao": "Português", "progresso": 0}, {"descricao": "Matemática", "progresso": 0}]}'
+          />
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={onClose}
+            disabled={carregando}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleImport}
+            disabled={carregando}
+          >
+            {carregando ? 'Processando...' : 'Importar'}
+          </Button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 }

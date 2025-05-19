@@ -1,8 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Play, Pause, RefreshCw, Settings, X, Award } from 'lucide-react'; // Adicionar Award
+import { useState, useEffect, useCallback } from 'react'
+import { Play, Pause, RefreshCw, Settings, X, Award, Coffee, BookOpen, AlertCircle } from 'lucide-react';
 import { usePomodoroStore } from '@/app/stores/pomodoroStore';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Progress } from '@/app/components/ui/progress';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useToast } from '@/app/components/ui/toast/use-toast';
+import { useEstudosData } from '@/app/hooks/useEstudosData';
 
 // Adicionar props para tipo e título opcional
 interface TemporizadorPomodoroProps {
@@ -10,39 +16,75 @@ interface TemporizadorPomodoroProps {
   titulo?: string; // Para personalizar o título se necessário
 }
 
+type PomodoroSettings = {
+  focusDuration: number;
+  breakDuration: number;
+  cycles: number;
+  sound: boolean;
+};
+
+type PomodoroState = {
+  isRunning: boolean;
+  mode: 'focus' | 'break';
+  timeLeft: number;
+  currentCycle: number;
+  settings: PomodoroSettings;
+};
+
 export function TemporizadorPomodoro({ tipo = 'geral', titulo }: TemporizadorPomodoroProps) {
   const { configuracao, atualizarConfiguracao, ciclosCompletos, incrementarCiclosCompletos, resetarCiclosCompletos } = usePomodoroStore();
+  const [state, setState] = useState<PomodoroState>({
+    isRunning: false,
+    mode: 'focus',
+    timeLeft: 25 * 60, // 25 minutos em segundos
+    currentCycle: 1,
+    settings: {
+      focusDuration: 25, // minutos
+      breakDuration: 5, // minutos
+      cycles: 4,
+      sound: true
+    }
+  });
+  
+  const [syncedWithDb, setSyncedWithDb] = useState(false);
+  const { toast } = useToast();
+  const supabase = createClientComponentClient();
+  const { sessaoAtiva, iniciarSessao, finalizarSessao } = useEstudosData();
 
-  const [isActive, setIsActive] = useState(false);
-  const [isPaused, setIsPaused] = useState(true)
-  const [time, setTime] = useState(configuracao.tempoFoco * 60) // tempo em segundos
-  const [ciclo, setCiclo] = useState<'foco' | 'pausa' | 'longapausa'>('foco')
   const [showSettings, setShowSettings] = useState(false)
   const [configTemp, setConfigTemp] = useState(configuracao)
 
   useEffect(() => {
     // Reset timer quando a configuração mudar e o timer estiver parado
-    if (!isActive || isPaused) {
-      if (ciclo === 'foco') {
-        setTime(configuracao.tempoFoco * 60);
-      } else if (ciclo === 'pausa') {
-        setTime(configuracao.tempoPausa * 60);
-      } else {
-        setTime(configuracao.tempoLongapausa * 60);
+    if (!state.isRunning) {
+      if (state.mode === 'focus') {
+        setState(prev => ({
+          ...prev,
+          timeLeft: state.settings.focusDuration * 60
+        }));
+      } else if (state.mode === 'break') {
+        setState(prev => ({
+          ...prev,
+          timeLeft: state.settings.breakDuration * 60
+        }));
       }
     }
-  }, [configuracao, isActive, isPaused, ciclo]);
+  }, [state.isRunning]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
-    if (isActive && !isPaused) {
+    if (state.isRunning) {
       interval = setInterval(() => {
-        setTime((time) => {
-          if (time <= 1) {
+        setState(prevState => {
+          if (prevState.timeLeft <= 1) {
             // Tocar som de notificação
             if (typeof window !== 'undefined') {
-              const audio = new Audio('/notification.mp3')
+              const audio = new Audio(
+                prevState.mode === 'focus' 
+                  ? '/sounds/break-start.mp3' 
+                  : '/sounds/focus-start.mp3'
+              )
               audio.play().catch(() => {
                 // Falha silenciosa se o navegador bloquear o áudio
                 console.log('Notificação de áudio bloqueada pelo navegador')
@@ -50,23 +92,52 @@ export function TemporizadorPomodoro({ tipo = 'geral', titulo }: TemporizadorPom
             }
 
             // Alternar entre ciclos
-            if (ciclo === 'foco') {
+            if (prevState.mode === 'focus') {
               incrementarCiclosCompletos()
               
               // Verificar se deve ser uma pausa longa
               if ((ciclosCompletos + 1) % configuracao.ciclosAntesLongapausa === 0) {
-                setCiclo('longapausa')
-                return configuracao.tempoLongapausa * 60
+                return {
+                  ...prevState,
+                  mode: 'break',
+                  timeLeft: prevState.settings.breakDuration * 60
+                }
               } else {
-                setCiclo('pausa')
-                return configuracao.tempoPausa * 60
+                return {
+                  ...prevState,
+                  mode: 'break',
+                  timeLeft: prevState.settings.breakDuration * 60
+                }
               }
             } else {
-              setCiclo('foco')
-              return configuracao.tempoFoco * 60
+              const nextCycle = prevState.currentCycle + 1;
+              
+              // Se alcançou o número máximo de ciclos
+              if (nextCycle > prevState.settings.cycles) {
+                return {
+                  ...prevState,
+                  isRunning: false,
+                  mode: 'focus',
+                  timeLeft: prevState.settings.focusDuration * 60,
+                  currentCycle: 1
+                }
+              }
+              
+              // Iniciar uma nova sessão de estudo para o próximo ciclo de foco
+              iniciarSessao('Sessão Pomodoro');
+              
+              return {
+                ...prevState,
+                mode: 'focus',
+                timeLeft: prevState.settings.focusDuration * 60,
+                currentCycle: nextCycle
+              }
             }
           }
-          return time - 1
+          return {
+            ...prevState,
+            timeLeft: prevState.timeLeft - 1
+          }
         })
       }, 1000)
     } else {
@@ -76,29 +147,150 @@ export function TemporizadorPomodoro({ tipo = 'geral', titulo }: TemporizadorPom
     return () => {
       interval && clearInterval(interval)
     }
-  }, [isActive, isPaused, ciclo, ciclosCompletos, configuracao, incrementarCiclosCompletos])
+  }, [state.isRunning, ciclosCompletos, configuracao, incrementarCiclosCompletos, iniciarSessao])
+
+  // Carregar estado do Pomodoro do Supabase
+  const loadPomodoroState = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('pomodoro_state')
+        .single();
+      
+      if (error) {
+        // Se o erro for 'não encontrado', é normal para usuários novos
+        if (error.code !== 'PGRST116') {
+          console.error('Erro ao carregar estado do Pomodoro:', error);
+        }
+        return;
+      }
+      
+      if (data?.pomodoro_state) {
+        // Garantir que o timeLeft não seja inválido
+        const savedState = data.pomodoro_state as PomodoroState;
+        
+        // Se estava rodando, verificar quanto tempo se passou desde o último salvamento
+        if (savedState.isRunning) {
+          // Não continuar rodando automaticamente entre sessões
+          savedState.isRunning = false;
+        }
+        
+        setState(savedState);
+        setSyncedWithDb(true);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações do Pomodoro:', error);
+    }
+  }, [supabase]);
+
+  // Salvar estado do Pomodoro no Supabase
+  const savePomodoroState = useCallback(async (stateToSave: PomodoroState) => {
+    try {
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({ 
+          pomodoro_state: stateToSave,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      setSyncedWithDb(true);
+    } catch (error) {
+      console.error('Erro ao salvar estado do Pomodoro:', error);
+      toast({
+        title: 'Erro ao sincronizar',
+        description: 'Não foi possível salvar o estado do Pomodoro',
+        variant: 'destructive',
+      });
+    }
+  }, [supabase, toast]);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadPomodoroState();
+  }, [loadPomodoroState]);
+
+  // Sincronizar mudanças de estado com o Supabase (com debounce)
+  useEffect(() => {
+    if (!syncedWithDb) return;
+    
+    const timer = setTimeout(() => {
+      savePomodoroState(state);
+    }, 3000); // Debounce de 3 segundos
+    
+    return () => clearTimeout(timer);
+  }, [state, syncedWithDb, savePomodoroState]);
 
   const formatTime = () => {
-    const minutes = Math.floor(time / 60)
-    const seconds = time % 60
+    const minutes = Math.floor(state.timeLeft / 60)
+    const seconds = state.timeLeft % 60
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
 
-  const handleStart = () => {
-    setIsActive(true)
-    setIsPaused(false)
-  }
-
-  const handlePause = () => {
-    setIsPaused(true)
+  const handlePlayPause = () => {
+    setState(prev => {
+      const newIsRunning = !prev.isRunning;
+      
+      // Se estiver iniciando e for modo focus, iniciar sessão de estudo
+      if (newIsRunning && prev.mode === 'focus' && !sessaoAtiva) {
+        iniciarSessao('Sessão Pomodoro');
+      }
+      
+      // Se estiver pausando e for modo focus, não finalizar a sessão
+      
+      return { ...prev, isRunning: newIsRunning };
+    });
   }
 
   const handleReset = () => {
-    setIsActive(false)
-    setIsPaused(true)
-    setCiclo('foco')
-    setTime(configuracao.tempoFoco * 60)
-    resetarCiclosCompletos()
+    const newMode = state.mode;
+    const newTime = newMode === 'focus' 
+      ? state.settings.focusDuration * 60 
+      : state.settings.breakDuration * 60;
+    
+    setState(prev => ({
+      ...prev,
+      isRunning: false,
+      timeLeft: newTime
+    }));
+    
+    // Se estiver em uma sessão de estudo, finalizá-la
+    if (sessaoAtiva && newMode === 'focus') {
+      finalizarSessao();
+    }
+  }
+
+  const handleSkipToNextMode = () => {
+    if (state.mode === 'focus') {
+      // Pular para pausa
+      if (sessaoAtiva) {
+        finalizarSessao();
+      }
+      
+      setState(prev => ({
+        ...prev,
+        mode: 'break',
+        timeLeft: prev.settings.breakDuration * 60,
+        isRunning: false
+      }));
+    } else {
+      // Pular para foco
+      iniciarSessao('Sessão Pomodoro');
+      
+      setState(prev => {
+        const nextCycle = prev.currentCycle + 1 > prev.settings.cycles 
+          ? 1 
+          : prev.currentCycle + 1;
+        
+        return {
+          ...prev,
+          mode: 'focus',
+          timeLeft: prev.settings.focusDuration * 60,
+          currentCycle: nextCycle,
+          isRunning: false
+        };
+      });
+    }
   }
 
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,205 +308,94 @@ export function TemporizadorPomodoro({ tipo = 'geral', titulo }: TemporizadorPom
 
   // Determinar a cor com base no ciclo atual
   const cicloColor = 
-    ciclo === 'foco' 
+    state.mode === 'focus' 
       ? 'text-estudos-primary dark:text-estudos-secondary' 
-      : ciclo === 'pausa'
-        ? 'text-green-600 dark:text-green-400'
-        : 'text-blue-600 dark:text-blue-400'
+      : 'text-green-600 dark:text-green-400'
 
   // Determinar a mensagem com base no ciclo atual
   const cicloMensagem = 
-    ciclo === 'foco'
+    state.mode === 'focus'
         ? tipo === 'concurso' ? 'Foco (Concurso)' : 'Tempo de foco'
-        : ciclo === 'pausa'
-          ? 'Pausa curta'
-          : 'Pausa longa'
+        : 'Pausa'
 
   // Determinar a cor de fundo com base no ciclo atual
   const cicloBgColor = 
-    ciclo === 'foco' 
+    state.mode === 'focus' 
       ? 'bg-estudos-light dark:bg-estudos-dark/30' 
-      : ciclo === 'pausa'
-        ? 'bg-green-100 dark:bg-green-900/30'
-        : 'bg-blue-100 dark:bg-blue-900/30'
+      : 'bg-green-100 dark:bg-green-900/30'
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="text-center mb-4">
-        {/* Adiciona ícone se for tipo concurso */}
-        <h3 className={`text-xl font-bold ${cicloColor} flex items-center justify-center gap-2`}>
-           {tipo === 'concurso' && <Award size={20} />}
-           {titulo || cicloMensagem} {/* Usa título customizado ou padrão */}
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Ciclos completos: {ciclosCompletos}
-        </p>
-      </div>
-
-      <div className={`text-4xl font-mono font-bold mb-6 ${cicloBgColor} text-gray-800 dark:text-white px-6 py-3 rounded-xl`}>
-        {formatTime()}
-      </div>
-
-      <div className="flex space-x-4 mb-6">
-        {isPaused ? (
-          <button
-            onClick={handleStart}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            aria-label="Iniciar temporizador"
-          >
-            <Play className="h-5 w-5 mr-1" />
-            <span>Iniciar</span>
-          </button>
-        ) : (
-          <button
-            onClick={handlePause}
-            className="flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            aria-label="Pausar temporizador"
-          >
-            <Pause className="h-5 w-5 mr-1" />
-            <span>Pausar</span>
-          </button>
-        )}
-
-        <button
-          onClick={handleReset}
-          className="flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          aria-label="Reiniciar temporizador"
-        >
-          <RefreshCw className="h-5 w-5 mr-1" />
-          <span>Reiniciar</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setConfigTemp(configuracao);
-            setShowSettings(true);
-          }}
-          className="flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Configurações do temporizador"
-        >
-          <Settings className="h-5 w-5 mr-1" />
-          <span>Ajustar</span>
-        </button>
-      </div>
-
-      {/* Explicação do ciclo atual */}
-      <div className={`p-3 ${cicloBgColor} rounded-lg text-sm text-gray-800 dark:text-gray-100 max-w-md`}>
-        {ciclo === 'foco' ? (
-          <p>Concentre-se em uma única tarefa. Evite distrações.</p>
-        ) : ciclo === 'pausa' ? (
-          <p>Faça uma pausa curta. Alongue-se ou beba água.</p>
-        ) : (
-          <p>Pausa longa! Levante-se e caminhe um pouco.</p>
-        )}
-      </div>
-
-      {/* Modal de configurações */}
-      {showSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Configurações do Temporizador
-              </h3>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                aria-label="Fechar configurações"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="tempoFoco"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Tempo de Foco (minutos)
-                </label>
-                <input
-                  type="number"
-                  id="tempoFoco"
-                  name="tempoFoco"
-                  min="1"
-                  max="60"
-                  value={configTemp.tempoFoco}
-                  onChange={handleSettingsChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="tempoPausa"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Tempo de Pausa Curta (minutos)
-                </label>
-                <input
-                  type="number"
-                  id="tempoPausa"
-                  name="tempoPausa"
-                  min="1"
-                  max="30"
-                  value={configTemp.tempoPausa}
-                  onChange={handleSettingsChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="tempoLongapausa"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Tempo de Pausa Longa (minutos)
-                </label>
-                <input
-                  type="number"
-                  id="tempoLongapausa"
-                  name="tempoLongapausa"
-                  min="5"
-                  max="60"
-                  value={configTemp.tempoLongapausa}
-                  onChange={handleSettingsChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ciclosAntesLongapausa"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Ciclos antes da Pausa Longa
-                </label>
-                <input
-                  type="number"
-                  id="ciclosAntesLongapausa"
-                  name="ciclosAntesLongapausa"
-                  min="1"
-                  max="10"
-                  value={configTemp.ciclosAntesLongapausa}
-                  onChange={handleSettingsChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end">
-                <button
-                  onClick={saveSettings}
-                  className="px-4 py-2 bg-estudos-primary text-white rounded-lg hover:bg-estudos-primary/90 focus:outline-none focus:ring-2 focus:ring-estudos-primary focus:ring-offset-2"
-                >
-                  Salvar Configurações
-                </button>
-              </div>
-            </div>
+    <Card className={`shadow-md ${state.mode === 'focus' ? 'border-blue-400' : 'border-green-400'}`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between">
+          <span>
+            Pomodoro - Ciclo {state.currentCycle}/{state.settings.cycles}
+          </span>
+          <span className={`text-sm px-2 py-1 rounded-full ${
+            state.mode === 'focus' 
+              ? 'bg-blue-100 text-blue-800' 
+              : 'bg-green-100 text-green-800'
+          }`}>
+            {state.mode === 'focus' ? (
+              <span className="flex items-center"><BookOpen className="w-4 h-4 mr-1" /> Foco</span>
+            ) : (
+              <span className="flex items-center"><Coffee className="w-4 h-4 mr-1" /> Pausa</span>
+            )}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center">
+          <div className="text-5xl font-bold mb-4">
+            {formatTime()}
           </div>
+          
+          <Progress value={calculateProgress()} className="h-2 mb-4 w-full" />
+          
+          <div className="flex space-x-4">
+            <Button
+              onClick={handlePlayPause}
+              variant="default"
+              className={state.mode === 'focus' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}
+            >
+              {state.isRunning ? <Pause className="mr-1" /> : <Play className="mr-1" />}
+              {state.isRunning ? 'Pausar' : 'Iniciar'}
+            </Button>
+            
+            <Button
+              onClick={handleReset}
+              variant="outline"
+            >
+              <RefreshCw className="mr-1 h-4 w-4" />
+              Reiniciar
+            </Button>
+            
+            <Button
+              onClick={handleSkipToNextMode}
+              variant="ghost"
+            >
+              {state.mode === 'focus' ? (
+                <>
+                  <Coffee className="mr-1 h-4 w-4" />
+                  Ir para Pausa
+                </>
+              ) : (
+                <>
+                  <BookOpen className="mr-1 h-4 w-4" />
+                  Ir para Foco
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {!syncedWithDb && (
+            <div className="mt-3 text-amber-600 text-sm flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              Sincronizando com o servidor...
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,24 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useFinancasStore } from '@/app/stores/financasStore'
-import { Calendar, Plus, Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Plus, Check, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
+import { useFinancasSupabase } from '@/app/lib/hooks/useFinancasSupabase'
 
 export function CalendarioPagamentos() {
   const { 
-    pagamentosRecorrentes, 
-    categorias,
-    adicionarPagamentoRecorrente, 
-    removerPagamentoRecorrente,
+    pagamentos, 
+    loading, 
+    error,
+    adicionarPagamento, 
+    removerPagamento,
     marcarPagamentoComoPago
-  } = useFinancasStore()
+  } = useFinancasSupabase()
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [novoPagamento, setNovoPagamento] = useState({
     descricao: '',
     valor: 0,
-    dataVencimento: '1', // dia do mês
-    categoriaId: ''
+    dataVencimento: new Date().toISOString().split('T')[0],
+    recorrente: false
   })
   
   const [mesAtual, setMesAtual] = useState(new Date().getMonth())
@@ -57,74 +58,73 @@ export function CalendarioPagamentos() {
   }
   
   // Verificar se um pagamento é do mês atual
-  const isDoMesAtual = (dataVencimento: string) => {
-    const dia = parseInt(dataVencimento)
-    const data = new Date(anoAtual, mesAtual, dia)
-    return data.getMonth() === mesAtual && data.getFullYear() === anoAtual
+  const isDoMesAtual = (data: string) => {
+    const dataPagamento = new Date(data)
+    return dataPagamento.getMonth() === mesAtual && dataPagamento.getFullYear() === anoAtual
   }
   
   // Filtrar pagamentos do mês atual
-  const pagamentosDoMes = pagamentosRecorrentes.filter(pagamento => {
-    return isDoMesAtual(pagamento.dataVencimento)
-  })
+  const pagamentosDoMes = pagamentos.filter(p => isDoMesAtual(p.data_vencimento))
   
-  // Ordenar pagamentos por dia
-  const pagamentosOrdenados = [...pagamentosDoMes].sort((a, b) => {
-    return parseInt(a.dataVencimento) - parseInt(b.dataVencimento)
-  })
-  
-  // Adicionar novo pagamento recorrente
-  const handleAdicionarPagamento = () => {
-    if (
-      !novoPagamento.descricao || 
-      novoPagamento.valor <= 0 || 
-      !novoPagamento.dataVencimento || 
-      !novoPagamento.categoriaId
-    ) return
+  // Organiza os dias do mês atual com seus pagamentos
+  const diasComPagamentos = pagamentosDoMes.reduce((acc, pagamento) => {
+    const data = new Date(pagamento.data_vencimento)
+    const dia = data.getDate()
     
-    adicionarPagamentoRecorrente(
+    if (!acc[dia]) {
+      acc[dia] = []
+    }
+    
+    acc[dia].push(pagamento)
+    return acc
+  }, {} as Record<number, typeof pagamentos>)
+  
+  // Adicionar novo pagamento
+  const handleAdicionarPagamento = async () => {
+    if (!novoPagamento.descricao || novoPagamento.valor <= 0) return
+    
+    await adicionarPagamento(
       novoPagamento.descricao,
       novoPagamento.valor,
       novoPagamento.dataVencimento,
-      novoPagamento.categoriaId
+      novoPagamento.recorrente
     )
     
+    // Limpar formulário
     setNovoPagamento({
       descricao: '',
       valor: 0,
-      dataVencimento: '1',
-      categoriaId: ''
+      dataVencimento: new Date().toISOString().split('T')[0],
+      recorrente: false
     })
-    
     setMostrarFormulario(false)
   }
   
-  // Verificar se um dia já passou no mês atual
-  const isDataPassada = (dia: number) => {
-    const hoje = new Date()
-    const dataPagamento = new Date(anoAtual, mesAtual, dia)
-    return dataPagamento < hoje
+  const handleMarcarPago = async (id: string, pago: boolean) => {
+    await marcarPagamentoComoPago(id, pago)
   }
   
-  // Verificar se é o dia atual
-  const isHoje = (dia: number) => {
-    const hoje = new Date()
+  // Calcular a soma total dos pagamentos do mês
+  const totalPagamentosMes = pagamentosDoMes.reduce((total, pagamento) => {
+    return total + pagamento.valor
+  }, 0)
+  
+  if (loading) {
     return (
-      dia === hoje.getDate() && 
-      mesAtual === hoje.getMonth() && 
-      anoAtual === hoje.getFullYear()
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 dark:text-gray-400">Carregando pagamentos...</p>
+      </div>
     )
   }
   
-  // Gerar opções para os dias do mês
-  const diasDoMes = Array.from({ length: 31 }, (_, i) => i + 1)
-  
-  useEffect(() => {
-    // Inicializar a categoriaId se estiver vazia e houver categorias disponíveis
-    if (!novoPagamento.categoriaId && categorias.length > 0) {
-      setNovoPagamento(prev => ({ ...prev, categoriaId: categorias[0].id }))
-    }
-  }, [categorias, novoPagamento.categoriaId])
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-red-500">
+        <AlertCircle className="h-8 w-8 mb-2" />
+        <p>Erro ao carregar pagamentos: {error}</p>
+      </div>
+    )
+  }
   
   return (
     <div className="space-y-4">
@@ -151,82 +151,63 @@ export function CalendarioPagamentos() {
         </button>
       </div>
       
+      {/* Total de pagamentos do mês */}
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-2 mb-3">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Total do mês: <span className="font-bold">{formatadorMoeda.format(totalPagamentosMes)}</span>
+        </p>
+      </div>
+      
       {/* Lista de pagamentos do mês */}
       <div className="space-y-2">
-        {pagamentosOrdenados.length > 0 ? (
-          pagamentosOrdenados.map(pagamento => {
-            const categoria = categorias.find(c => c.id === pagamento.categoriaId)
-            const diaVencimento = parseInt(pagamento.dataVencimento)
-            const dataPassada = isDataPassada(diaVencimento)
-            const hoje = isHoje(diaVencimento)
-            
-            return (
-              <div
-                key={pagamento.id}
-                className={`border rounded-lg overflow-hidden ${
-                  pagamento.pago 
-                    ? 'border-green-200 dark:border-green-800' 
-                    : hoje 
-                      ? 'border-yellow-200 dark:border-yellow-800' 
-                      : dataPassada 
-                        ? 'border-red-200 dark:border-red-800'
-                        : 'border-gray-200 dark:border-gray-700'
-                }`}
-              >
-                <div 
-                  className={`flex items-center justify-between p-3 ${
-                    pagamento.pago 
-                      ? 'bg-green-50 dark:bg-green-900/20' 
-                      : hoje 
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20' 
-                        : dataPassada 
-                          ? 'bg-red-50 dark:bg-red-900/20'
-                          : 'bg-gray-50 dark:bg-gray-800'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-700 rounded-full mr-3 font-medium">
-                      {pagamento.dataVencimento}
-                    </div>
+        {Object.entries(diasComPagamentos).length > 0 ? (
+          Object.entries(diasComPagamentos).map(([dia, pagamentosNoDia]) => (
+            <div key={dia} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800 p-2 border-b border-gray-200 dark:border-gray-700">
+                <span className="font-medium">{parseInt(dia)} de {nomesMeses[mesAtual]}</span>
+              </div>
+              
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {pagamentosNoDia.map(pagamento => (
+                  <div key={pagamento.id} className="p-3 flex justify-between items-center">
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {pagamento.descricao}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {categoria?.nome || 'Categoria não especificada'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <div className="font-medium text-gray-900 dark:text-white mr-3">
-                      {formatadorMoeda.format(pagamento.valor)}
+                      <p className="font-medium">{pagamento.descricao}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatadorMoeda.format(pagamento.valor)}
+                        {pagamento.recorrente && <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full">Recorrente</span>}
+                      </p>
                     </div>
                     
-                    <button
-                      onClick={() => marcarPagamentoComoPago(pagamento.id, !pagamento.pago)}
-                      className={`p-1 rounded-full ${
-                        pagamento.pago 
-                          ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300' 
-                          : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-                      }`}
-                      aria-label={pagamento.pago ? 'Marcar como não pago' : 'Marcar como pago'}
-                    >
-                      {pagamento.pago ? (
-                        <Check className="h-5 w-5" />
-                      ) : (
-                        <X className="h-5 w-5" />
-                      )}
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleMarcarPago(pagamento.id, !pagamento.pago)}
+                        className={`p-1 rounded-full ${
+                          pagamento.pago 
+                            ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300' 
+                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                        }`}
+                        aria-label={pagamento.pago ? 'Desmarcar como pago' : 'Marcar como pago'}
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => removerPagamento(pagamento.id)}
+                        className="p-1 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-red-900 dark:hover:text-red-300"
+                        aria-label={`Remover pagamento ${pagamento.descricao}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            )
-          })
+            </div>
+          ))
         ) : (
           <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-            <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>Nenhum pagamento agendado para este mês</p>
+            <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>Nenhum pagamento em {nomesMeses[mesAtual]} {anoAtual}</p>
           </div>
         )}
       </div>
@@ -267,54 +248,42 @@ export function CalendarioPagamentos() {
             
             <div>
               <label htmlFor="pagamentoData" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Dia do Vencimento
+                Data de Vencimento
               </label>
-              <select
+              <input
                 id="pagamentoData"
+                type="date"
                 value={novoPagamento.dataVencimento}
                 onChange={e => setNovoPagamento({ ...novoPagamento, dataVencimento: e.target.value })}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-              >
-                {diasDoMes.map(dia => (
-                  <option key={dia} value={dia}>
-                    {dia}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             
-            <div>
-              <label htmlFor="pagamentoCategoria" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Categoria
+            <div className="flex items-center">
+              <input
+                id="pagamentoRecorrente"
+                type="checkbox"
+                checked={novoPagamento.recorrente}
+                onChange={e => setNovoPagamento({ ...novoPagamento, recorrente: e.target.checked })}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="pagamentoRecorrente" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                Pagamento recorrente mensal
               </label>
-              <select
-                id="pagamentoCategoria"
-                value={novoPagamento.categoriaId}
-                onChange={e => setNovoPagamento({ ...novoPagamento, categoriaId: e.target.value })}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-              >
-                {categorias.map(categoria => (
-                  <option key={categoria.id} value={categoria.id}>
-                    {categoria.nome}
-                  </option>
-                ))}
-              </select>
             </div>
             
-            <div className="flex space-x-2 pt-2">
-              <button
-                onClick={handleAdicionarPagamento}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                aria-label="Adicionar pagamento"
-              >
-                Adicionar
-              </button>
+            <div className="flex justify-end space-x-2 pt-2">
               <button
                 onClick={() => setMostrarFormulario(false)}
-                className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
-                aria-label="Cancelar"
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md"
               >
                 Cancelar
+              </button>
+              <button
+                onClick={handleAdicionarPagamento}
+                className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+              >
+                Adicionar
               </button>
             </div>
           </div>
@@ -322,7 +291,7 @@ export function CalendarioPagamentos() {
       ) : (
         <button
           onClick={() => setMostrarFormulario(true)}
-          className="w-full px-4 py-2 flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-gray-700 dark:text-gray-300"
+          className="w-full px-4 py-2 flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-gray-700 dark:text-gray-300 mt-3"
           aria-label="Adicionar novo pagamento"
         >
           <Plus className="h-5 w-5 mr-1" />

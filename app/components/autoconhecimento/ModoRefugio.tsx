@@ -1,11 +1,18 @@
 'use client'
 
-import { useAutoconhecimentoStore } from '@/app/stores/autoconhecimentoStore'
+import { usePerfilStore } from '@/app/stores/perfilStore'
 import { Button } from '@/app/components/ui/Button'
 import { ShieldAlert, ShieldCheck } from 'lucide-react'
 
 export function ModoRefugio() {
-  const { modoRefugio, alternarModoRefugio } = useAutoconhecimentoStore()
+  const { perfil, atualizarPreferenciasVisuais } = usePerfilStore()
+  const modoRefugio = perfil?.preferenciasVisuais?.modoRefugio || false
+  
+  const alternarModoRefugio = () => {
+    atualizarPreferenciasVisuais({
+      modoRefugio: !modoRefugio
+    })
+  }
   
   return (
     <div className={`fixed bottom-6 right-6 z-50 ${modoRefugio ? 'scale-110' : ''} transition-all duration-300`}>

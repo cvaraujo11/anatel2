@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useFinancasStore } from '@/app/stores/financasStore'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { Home, ShoppingCart, Utensils, Car, Heart, Music } from 'lucide-react'
+import { useFinancasSupabase } from '@/app/lib/hooks/useFinancasSupabase'
 
 // Mapeamento de nomes de ícones para componentes Lucide
 const iconesMapeados: Record<string, React.ReactNode> = {
@@ -15,40 +15,37 @@ const iconesMapeados: Record<string, React.ReactNode> = {
   'music': <Music className="h-5 w-5" />,
 }
 
-// Change to default export
+// Usando default export conforme solicitado pelo dynamic import
 export default function RastreadorGastos() { 
-  const { categorias, transacoes } = useFinancasStore()
+  const { gastos, gastosPorCategoria, totalGastos, loading } = useFinancasSupabase()
   const [dadosGrafico, setDadosGrafico] = useState<Array<{ name: string; value: number; cor: string }>>([])
-  const [totalGastos, setTotalGastos] = useState(0)
   
-  // Calcular os dados do gráfico quando as transações ou categorias mudarem
+  // Cores padrão para categorias
+  const coresPadrao: Record<string, string> = {
+    'Moradia': '#3498db',
+    'Alimentação': '#e74c3c',
+    'Transporte': '#2ecc71',
+    'Saúde': '#9b59b6',
+    'Educação': '#f39c12',
+    'Lazer': '#1abc9c',
+    'Outros': '#95a5a6'
+  }
+  
+  // Calcular os dados do gráfico quando os gastos mudarem
   useEffect(() => {
-    const despesas = transacoes.filter(t => t.tipo === 'despesa')
-    const total = despesas.reduce((acc, t) => acc + t.valor, 0)
-    setTotalGastos(total)
-    
-    // Agrupar transações por categoria e calcular o total por categoria
-    const gastosPorCategoria: Record<string, number> = {}
-    
-    despesas.forEach(transacao => {
-      if (!gastosPorCategoria[transacao.categoriaId]) {
-        gastosPorCategoria[transacao.categoriaId] = 0
-      }
-      gastosPorCategoria[transacao.categoriaId] += transacao.valor
-    })
+    if (loading) return
     
     // Preparar os dados para o gráfico
-    const dados = Object.entries(gastosPorCategoria).map(([categoriaId, valor]) => {
-      const categoria = categorias.find(c => c.id === categoriaId)
+    const dados = Object.entries(gastosPorCategoria).map(([categoria, valor]) => {
       return {
-        name: categoria ? categoria.nome : 'Outros',
+        name: categoria,
         value: valor,
-        cor: categoria ? categoria.cor : '#CCCCCC'
+        cor: coresPadrao[categoria] || '#CCCCCC'
       }
     })
     
     setDadosGrafico(dados)
-  }, [transacoes, categorias])
+  }, [gastosPorCategoria, loading])
   
   // Formatador para valores monetários
   const formatadorMoeda = new Intl.NumberFormat('pt-BR', {
@@ -83,6 +80,14 @@ export default function RastreadorGastos() {
     return null
   }
   
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 dark:text-gray-400">Carregando dados financeiros...</p>
+      </div>
+    )
+  }
+  
   return (
     <div className="space-y-4">
       {/* Exibir o gráfico apenas se houver dados */}
@@ -115,35 +120,34 @@ export default function RastreadorGastos() {
       )}
       
       {/* Lista de categorias com valores */}
-      <div className="space-y-2 mt-4">
+      <div>
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
           Total de Gastos: {formatadorMoeda.format(totalGastos)}
         </h3>
         
-        {categorias.map(categoria => {
-          const dadoCategoria = dadosGrafico.find(d => d.name === categoria.nome)
-          const valorCategoria = dadoCategoria ? dadoCategoria.value : 0
-          const percentual = totalGastos > 0 ? valorCategoria / totalGastos : 0
+        {Object.entries(gastosPorCategoria).map(([categoria, valor]) => {
+          const corCategoria = coresPadrao[categoria] || '#CCCCCC'
+          const percentual = totalGastos > 0 ? valor / totalGastos : 0
           
           return (
             <div 
-              key={categoria.id}
-              className="flex items-center justify-between p-2 rounded-lg"
-              style={{ backgroundColor: `${categoria.cor}20` }}
+              key={categoria}
+              className="flex items-center justify-between p-2 rounded-lg mb-2"
+              style={{ backgroundColor: `${corCategoria}20` }}
             >
               <div className="flex items-center">
-                <div className="p-1 rounded-full mr-2" style={{ backgroundColor: categoria.cor }}>
+                <div className="p-1 rounded-full mr-2" style={{ backgroundColor: corCategoria }}>
                   <span className="text-white">
-                    {iconesMapeados[categoria.icone] || <ShoppingCart className="h-5 w-5" />}
+                    {iconesMapeados[categoria.toLowerCase()] || <ShoppingCart className="h-5 w-5" />}
                   </span>
                 </div>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {categoria.nome}
+                  {categoria}
                 </span>
               </div>
               <div className="text-right">
                 <div className="font-medium text-gray-900 dark:text-white">
-                  {formatadorMoeda.format(valorCategoria)}
+                  {formatadorMoeda.format(valor)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   {formatadorPorcentagem.format(percentual)}

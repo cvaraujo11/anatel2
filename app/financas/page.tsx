@@ -4,6 +4,7 @@ import { Card } from '@/app/components/ui/Card'
 import { EnvelopesVirtuais } from '@/app/components/financas/EnvelopesVirtuais'
 import { CalendarioPagamentos } from '@/app/components/financas/CalendarioPagamentos'
 import { AdicionarDespesa } from '@/app/components/financas/AdicionarDespesa'
+import { MigrarDadosFinanceiros } from '@/app/components/financas/MigrarDadosFinanceiros'
 
 // Importação dinâmica para o RastreadorGastos (ajustada para default export)
 const RastreadorGastos = dynamic(
@@ -14,6 +15,11 @@ const RastreadorGastos = dynamic(
     loading: () => <p className="text-center text-gray-500 dark:text-gray-400">Carregando gráfico...</p> 
   }
 )
+
+export const metadata = {
+  title: 'Finanças | StayFocus',
+  description: 'Gerencie suas finanças pessoais, rastreie gastos e organize seu orçamento'
+}
 
 export default function FinancasPage() {
   return (
@@ -43,6 +49,11 @@ export default function FinancasPage() {
           <AdicionarDespesa />
         </Card>
       </div>
+      
+      {/* Ferramenta de Migração de Dados */}
+      <Card title="Ferramentas de Dados">
+        <MigrarDadosFinanceiros />
+      </Card>
     </div>
   )
 }
